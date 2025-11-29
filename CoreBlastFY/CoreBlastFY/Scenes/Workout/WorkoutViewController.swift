@@ -15,7 +15,7 @@ protocol WorkoutDisplayLogic: AnyObject {
 class WorkoutViewController: UIViewController, WorkoutDisplayLogic {
     var interactor: (WorkoutBusinessLogic & WorkoutDataStore)?
     var router: (NSObjectProtocol & WorkoutRoutingLogic & WorkoutDataPassing)?
-    var workoutView: WorkoutView?
+    var workoutView: ModernWorkoutView?
     var viewModel: WorkoutInfo.FetchWorkout.ViewModel?
     var tapGesture: UITapGestureRecognizer?
     
@@ -139,7 +139,7 @@ class WorkoutViewController: UIViewController, WorkoutDisplayLogic {
     @objc private func handleStateOfWorkout(_ gesture: UITapGestureRecognizer) {
         switch gesture.state {
         case .ended :
-            guard workoutView != nil && workoutView?.loadingView == nil else { return }
+            guard workoutView != nil else { return }
             if workoutView!.timerIsRunning {
                 workoutView?.pauseWorkout()
                 DispatchQueue.main.async { [weak self] in
@@ -161,10 +161,71 @@ class WorkoutViewController: UIViewController, WorkoutDisplayLogic {
     
     @objc private func workoutComplete() {
         workoutView = nil
+        
+        // Track workout completion for paywall logic
+        trackWorkoutCompletion()
+        
         showPreWorkoutUI()
         NotificationCenter.default.post(name: workoutCompleteNotification2, object: nil)
     }
     
+    private func trackWorkoutCompletion() {
+        let completedWorkouts = UserDefaults.standard.integer(forKey: "completedWorkoutsCount")
+        let newCount = completedWorkouts + 1
+        UserDefaults.standard.set(newCount, forKey: "completedWorkoutsCount")
+        UserDefaults.standard.synchronize()
+        
+        print("🏋️‍♂️ Workout completed! Total: \(newCount)")
+        
+        // Check if we need to show paywall after 3 completed workouts
+        if newCount >= 3 && !isUserSubscribed() {
+            DispatchQueue.main.async {
+                self.showPaywallAfterWorkout()
+            }
+        }
+    }
+    
+    private func isUserSubscribed() -> Bool {
+        let hasSubscribed = UserDefaults.standard.bool(forKey: "hasSubscribed")
+        let isPremium = StoreManager.shared.isPremium
+        return hasSubscribed || isPremium
+    }
+    
+    private func showPaywallAfterWorkout() {
+        let subscriptionView = HostingViewController(view: SubscriptionView() { [weak self] success in
+            if success {
+                UserDefaults.standard.set(true, forKey: "hasSubscribed")
+                // User subscribed, continue normally
+                print("✅ User subscribed after workout completion")
+            } else {
+                // This is now a hard paywall - user must subscribe to continue
+                // Show alert and prevent further workout access
+                self?.showHardPaywallAlert()
+            }
+        })
+        
+        subscriptionView.modalPresentationStyle = .fullScreen
+        present(subscriptionView, animated: true)
+    }
+    
+    private func showHardPaywallAlert() {
+        let alert = UIAlertController(
+            title: "Subscription Required",
+            message: "You've completed your 3 free workouts! Subscribe to continue your fitness journey with unlimited access to all workouts.",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "Subscribe", style: .default) { [weak self] _ in
+            self?.showPaywallAfterWorkout()
+        })
+        
+        alert.addAction(UIAlertAction(title: "Maybe Later", style: .cancel) { [weak self] _ in
+            // Navigate back to home - they can't access workouts anymore
+            self?.navigationController?.popToRootViewController(animated: true)
+        })
+        
+        present(alert, animated: true)
+    }
     
     // MARK: Do something
     
@@ -180,7 +241,7 @@ class WorkoutViewController: UIViewController, WorkoutDisplayLogic {
     
     private func showWorkoutUI(with viewModel: WorkoutInfo.FetchWorkout.ViewModel) {
         if workoutView == nil {
-            workoutView = WorkoutView(frame: view.frame, rootVC: self, viewModel: viewModel,  secondsOfRest: interactor?.workout?.secondsOfRest ?? 10)
+            workoutView = ModernWorkoutView(frame: view.frame, rootVC: self, viewModel: viewModel, secondsOfRest: interactor?.workout?.secondsOfRest ?? 10)
         }
         guard let workoutView = workoutView else { return }
         view.addSubview(workoutView)

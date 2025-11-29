@@ -47,7 +47,57 @@ class PreWorkoutViewController: UIViewController, PreWorkoutDisplayLogic
     // MARK: Routing
     
     func routeToWorkoutScene() {
+        // Check if user has hit the workout limit and needs subscription
+        if shouldShowPaywall() {
+            showHardPaywall()
+            return
+        }
+        
         router?.routeToWorkoutScene()
+    }
+    
+    private func shouldShowPaywall() -> Bool {
+        let completedWorkouts = UserDefaults.standard.integer(forKey: "completedWorkoutsCount")
+        let hasSubscribed = UserDefaults.standard.bool(forKey: "hasSubscribed")
+        let isPremium = StoreManager.shared.isPremium
+        
+        return completedWorkouts >= 3 && !hasSubscribed && !isPremium
+    }
+    
+    private func showHardPaywall() {
+        let subscriptionView = HostingViewController(view: SubscriptionView() { [weak self] success in
+            if success {
+                UserDefaults.standard.set(true, forKey: "hasSubscribed")
+                // User subscribed, now they can start the workout
+                self?.dismiss(animated: true) {
+                    self?.router?.routeToWorkoutScene()
+                }
+            } else {
+                // Hard paywall - user must subscribe
+                self?.dismiss(animated: true) {
+                    self?.showSubscriptionRequiredAlert()
+                }
+            }
+        })
+        
+        subscriptionView.modalPresentationStyle = .fullScreen
+        present(subscriptionView, animated: true)
+    }
+    
+    private func showSubscriptionRequiredAlert() {
+        let alert = UIAlertController(
+            title: "Subscription Required",
+            message: "You've completed your 3 free workouts! Subscribe to unlock unlimited access to all workouts and features.",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "Subscribe", style: .default) { [weak self] _ in
+            self?.showHardPaywall()
+        })
+        
+        alert.addAction(UIAlertAction(title: "OK", style: .cancel))
+        
+        present(alert, animated: true)
     }
     
     private func removeLoadingView() {
@@ -95,6 +145,20 @@ class PreWorkoutViewController: UIViewController, PreWorkoutDisplayLogic
         self.tabBarController?.tabBar.isHidden = false
         
         customWorkoutIcon.isHidden = false
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        // Remove custom buttons when leaving this view controller
+        removeCustomNavigationElements()
+    }
+    
+    private func removeCustomNavigationElements() {
+        customWorkoutIcon.removeFromSuperview()
+        tipIcon.removeFromSuperview()
+        
+        // Also clear any bar button items we might have set
+        navigationItem.rightBarButtonItem = nil
     }
     
     // MARK: Setup
@@ -247,9 +311,7 @@ class PreWorkoutViewController: UIViewController, PreWorkoutDisplayLogic
     }
     
     @objc private func startWorkout() {
-        displayLoadingView()
-        removeItemsFromNavBar()
-        customWorkoutIcon.isHidden = true
+        router?.routeToExercisePreview()
     }
     
     private func setupPreWorkoutUI(viewModel: PreWorkout.FetchUser.ViewModel) {

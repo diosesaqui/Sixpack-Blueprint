@@ -53,3 +53,19 @@ final class HostingViewController<Content: View>: UIViewController {
         hostingController.didMove(toParent: self)
     }
 }
+
+extension HostingViewController: StoreObserverDelegate {
+    func storeObserverDidReceiveMessage(_ message: String) {
+        let ac = AlertController.alert(Messages.purchaseStatus, message: message)
+        present(ac, animated: true, completion: nil)
+    }
+    
+    func storeObserverRestoreDidSucceed() {
+        let ac = AlertController.alert(Messages.purchaseStatus, message: "All successful purchases have been restored.")
+        present(ac, animated: true, completion: nil)
+        
+//        for iap in InAppIds.subscriptions {
+//            let bought = StoreManager.shared.isPurchased(with: iap)
+//        }
+    }
+}

@@ -37,8 +37,8 @@ enum Settings {
               }
         var items: [SettingsItem] = [
         //.about,
-        .thirtyDayChallenge,
-        .programOverview,
+//        .thirtyDayChallenge,
+//        .programOverview,
         .exercises,
         //.customWorkout,
         .notifications,

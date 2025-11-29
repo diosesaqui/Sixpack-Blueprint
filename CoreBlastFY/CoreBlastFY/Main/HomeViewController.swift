@@ -118,12 +118,12 @@ class HomeViewController: UITabBarController, MFMailComposeViewControllerDelegat
         
         
         
-        let journalViewController = JournalViewController()
-        journalNavViewController = UINavigationController(rootViewController: journalViewController)
-        journalNavViewController.navigationBar.barStyle = .black
-        journalNavViewController.navigationBar.titleTextAttributes = [.foregroundColor: UIColor.white, .font: UIFont.makeTitleFont(size: 22)]
-        let journalImage = UIImage(systemName: "list.dash")
-        journalNavViewController.tabBarItem = UITabBarItem(title: "Journal", image: journalImage, selectedImage: nil)
+//        let journalViewController = JournalViewController()
+//        journalNavViewController = UINavigationController(rootViewController: journalViewController)
+//        journalNavViewController.navigationBar.barStyle = .black
+//        journalNavViewController.navigationBar.titleTextAttributes = [.foregroundColor: UIColor.white, .font: UIFont.makeTitleFont(size: 22)]
+//        let journalImage = UIImage(systemName: "list.dash")
+//        journalNavViewController.tabBarItem = UITabBarItem(title: "Journal", image: journalImage, selectedImage: nil)
                 
         
         let settingsViewController = SettingsViewController()
@@ -134,17 +134,48 @@ class HomeViewController: UITabBarController, MFMailComposeViewControllerDelegat
         settingsNavController.navigationBar.titleTextAttributes = [.foregroundColor: UIColor.white]
         
         self.setupPreworkoutVC()
-        setViewControllers([ workoutNavController,progressionNavController,journalNavViewController, settingsNavController], animated: true)
+        setViewControllers([ workoutNavController,progressionNavController, settingsNavController], animated: true)
         self.customizableViewControllers = []
         
         selectedViewController = viewControllers?[0]
     }
     
     private func setupTabBar() {
-        tabBar.isTranslucent = false
-        tabBar.barTintColor = .goatBlack
-        tabBar.tintColor = .goatBlue
+        // Use Apple's modern tab bar appearance APIs
+        let appearance = UITabBarAppearance()
+        appearance.configureWithTransparentBackground()
         
+        // Modern background with blur
+        appearance.backgroundColor = UIColor.black.withAlphaComponent(0.8)
+        
+        // Selection indicator
+        appearance.selectionIndicatorTintColor = UIColor.systemBlue
+        
+        // Normal state styling
+        appearance.stackedLayoutAppearance.normal.iconColor = UIColor.white.withAlphaComponent(0.6)
+        appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
+            .foregroundColor: UIColor.white.withAlphaComponent(0.6),
+            .font: UIFont.systemFont(ofSize: 11, weight: .medium)
+        ]
+        
+        // Selected state styling
+        appearance.stackedLayoutAppearance.selected.iconColor = UIColor.systemBlue
+        appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
+            .foregroundColor: UIColor.systemBlue,
+            .font: UIFont.systemFont(ofSize: 11, weight: .semibold)
+        ]
+        
+        // Apply the appearance
+        tabBar.standardAppearance = appearance
+        tabBar.scrollEdgeAppearance = appearance
+        
+        // Additional styling
+        tabBar.isTranslucent = true
+        tabBar.tintColor = UIColor.systemBlue
+        tabBar.unselectedItemTintColor = UIColor.white.withAlphaComponent(0.6)
+        
+        // Background color
+        view.backgroundColor = .black
     }
 }
 

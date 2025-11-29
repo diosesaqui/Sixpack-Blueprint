@@ -27,6 +27,10 @@ class CustomWorkoutViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         setupViews()
+        // Reset the exercise selection view if coming back from workout
+        if workoutViewController == nil && exerciseSelectionView.superview != nil {
+            exerciseSelectionView.removeFromSuperview()
+        }
     }
     
     // MARK: - Views
@@ -45,6 +49,10 @@ class CustomWorkoutViewController: UIViewController {
     
     @objc func workoutComplete() {
         workoutViewController = nil
+        // Reset after workout is complete
+        customWorkoutVM.workout = nil
+        exerciseSelectionView.exerciseSelectionViewDataSource.resetSelectedExercises()
+        customWorkoutVM.reset()
         view.setNeedsDisplay()
     }
     
@@ -68,53 +76,78 @@ class CustomWorkoutViewController: UIViewController {
     }
     
     func createWorkout() {
+        // Check if user has hit the workout limit and needs subscription
+        if shouldShowPaywall() {
+            showHardPaywall()
+            return
+        }
+        
         let exercises = exerciseSelectionView.exerciseSelectionViewDataSource.selectedExercises
         customWorkoutVM.addExercises(exercises: exercises)
-        setFirstWorkout()
-        workoutViewController = WorkoutViewController()
-        workoutViewController!.interactor?.workout = customWorkoutVM.workout
-        displayLoadingView()
         
+        // Navigate directly to WorkoutViewController with custom workout
+        showWorkout()
     }
     
-    private func presentWorkoutVC() {
-        DispatchQueue.main.asyncAfter(deadline: .now()) { [weak self] in
-            guard let self = self else { return }
-            guard self.workoutViewController != nil else { return }
-            self.show(self.workoutViewController!, sender: nil)
-            self.customWorkoutVM.workout = nil
-            self.exerciseSelectionView.exerciseSelectionViewDataSource.resetSelectedExercises()
-            self.customWorkoutVM.reset()
-        }
+    private func shouldShowPaywall() -> Bool {
+        let completedWorkouts = UserDefaults.standard.integer(forKey: "completedWorkoutsCount")
+        let hasSubscribed = UserDefaults.standard.bool(forKey: "hasSubscribed")
+        let isPremium = StoreManager.shared.isPremium
+        
+        return completedWorkouts >= 3 && !hasSubscribed && !isPremium
     }
     
-    private func removeLoadingView() {
-        loadingView?.removeFromSuperview()
-        loadingView = nil
+    private func showHardPaywall() {
+        let subscriptionView = HostingViewController(view: SubscriptionView() { [weak self] success in
+            if success {
+                UserDefaults.standard.set(true, forKey: "hasSubscribed")
+                // User subscribed, now they can start the custom workout
+                self?.dismiss(animated: true) {
+                    self?.createWorkoutAfterSubscription()
+                }
+            } else {
+                // Hard paywall - user must subscribe
+                self?.dismiss(animated: true) {
+                    self?.showSubscriptionRequiredAlert()
+                }
+            }
+        })
+        
+        subscriptionView.modalPresentationStyle = .fullScreen
+        present(subscriptionView, animated: true)
     }
     
-    private func setFirstWorkout() {
-        let firstWorkout = customWorkoutVM.workout?.exercises.first
-        self.firstWorkout = firstWorkout?.name.capitalized
-        self.videoURL = customWorkoutVM.workout?.exercises.first?.videoURL
+    private func createWorkoutAfterSubscription() {
+        let exercises = exerciseSelectionView.exerciseSelectionViewDataSource.selectedExercises
+        customWorkoutVM.addExercises(exercises: exercises)
+        showWorkout()
     }
     
-    var firstWorkout: String?
-    var videoURL: URL?
-    
-    private func displayLoadingView() {
-        navigationItem.title = ""
-        loadingView = LoadingView(frame: .zero, nextExercise: firstWorkout ?? "", backgroundColor: .black, secondsOfRest: customWorkoutVM.secondsOfRest, videoURL: videoURL, isFirstWorkout: true)
-        view.addSubview(loadingView!)
-        self.tabBarController?.tabBar.isHidden = true
-        loadingView!.translatesAutoresizingMaskIntoConstraints = false
-        loadingView!.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
-        loadingView!.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
-        loadingView!.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
-        loadingView!.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
-        loadingView!.runTimer { [weak self] in
-            self?.removeLoadingView()
-            self?.presentWorkoutVC()
-        }
+    private func showSubscriptionRequiredAlert() {
+        let alert = UIAlertController(
+            title: "Subscription Required",
+            message: "You've completed your 3 free workouts! Subscribe to unlock unlimited access to all workouts and custom workout features.",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "Subscribe", style: .default) { [weak self] _ in
+            self?.showHardPaywall()
+        })
+        
+        alert.addAction(UIAlertAction(title: "OK", style: .cancel))
+        
+        present(alert, animated: true)
     }
+    
+    private func showWorkout() {
+        guard let workout = customWorkoutVM.workout else { return }
+        
+        workoutViewController = WorkoutViewController()
+        workoutViewController?.interactor?.workout = workout
+        
+        navigationController?.pushViewController(workoutViewController!, animated: true)
+        
+        // Don't reset here - wait until workout is complete or view disappears
+    }
+    
 }

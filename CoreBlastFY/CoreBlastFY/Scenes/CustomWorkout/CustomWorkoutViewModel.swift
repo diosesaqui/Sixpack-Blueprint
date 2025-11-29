@@ -26,11 +26,15 @@ class CustomWorkoutViewModel {
     func createWorkout(sets: Int?, duration: Int?, exercises: [Exercise]) -> Workout? {
         guard let numberOfSets = numberOfSets, let durationOfExercise = durationOfExercise else { return nil }
         
-        return Workout(exercises: exercises, numberOfSets: numberOfSets, duration: durationOfExercise, isCustom: true)
+        return Workout(exercises: exercises, numberOfSets: numberOfSets, duration: durationOfExercise, secondsOfRest: secondsOfRest, isCustom: true)
     }
     
     func addExercises(exercises: [Exercise]) {
         self.exercises = exercises
+        // Force workout creation with current settings
+        if self.exercises.count > 1 {
+            workout = createWorkout(sets: numberOfSets, duration: durationOfExercise, exercises: self.exercises)
+        }
     }
     
     func reset() {

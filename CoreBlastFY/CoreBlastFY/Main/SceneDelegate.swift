@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import StoreKit
 
 let PauseWorkoutNotification = NSNotification.Name("PauseWorkoutNotification")
 let FetchingExercisesFailedNotification = Notification.Name("FetchingExercisesFailed")
@@ -31,37 +32,89 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UNUserNotificationCente
         window = UIWindow(frame: windowScene.coordinateSpace.bounds)
         window?.windowScene = windowScene
         
+        // Track app launches
+        trackAppLaunch()
+        
+        // Initialize StoreKit payment observer for legacy support
+        SKPaymentQueue.default().add(StoreObserver.shared)
+        
+        OnboardingViewController.completion = {
+            DispatchQueue.main.asyncAfter(deadline: .now()) {
+                // add animation
+                let homeVC = HomeViewController()
+                homeVC.modalPresentationStyle = .fullScreen
+                self.window!.rootViewController = homeVC
+                self.window!.makeKeyAndVisible()
+            }
+        }
         
         // MARK: TO DP clean up
         
         let exerciseFetcher = SceneExerciseFetcher()
         exerciseFetcher.fetchExercises() { (success) in
             DispatchQueue.main.async {
-                if !UserDefaults.standard.bool(forKey: onboardingKey) {
+                #if DEBUG
+                OnboardingManager.debugOnboardingState()
+                #endif
+                
+                if !OnboardingManager.hasCompletedOnboarding {
                     let onboardingView = HostingViewController(view: OnboardingView())
-//                    let pageViewController = OnboardingPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
                     self.window!.rootViewController = onboardingView
                     self.window!.makeKeyAndVisible()
-                    OnboardingViewController.completion = {
-                        DispatchQueue.main.asyncAfter(deadline: .now()) {
-                            // add animation
-                            let homeVC = HomeViewController()
-                            homeVC.modalPresentationStyle = .fullScreen
-                            self.window!.rootViewController = homeVC
-                            self.window!.makeKeyAndVisible()
-                        }
-                    }
+                    
+                    print("📱 Showing onboarding - Fresh install: \(OnboardingManager.isFreshInstall)")
+                    
                 } else {
-                    DispatchQueue.global(qos: .userInitiated).sync {
-                        UserAPI.user = UserManager.loadUserFromFile()
-                        if UserAPI.user != nil {
-                            DispatchQueue.main.async {
-                                self.window!.rootViewController = HomeViewController()
-                                self.window!.makeKeyAndVisible()
+                    // Check if we need to show subscription on 2nd or 3rd app launch
+                    let shouldShowSubscription = self.shouldShowSubscriptionPage()
+                    
+                    if shouldShowSubscription {
+                        // Show subscription page
+                        let subscriptionView = HostingViewController(view: SubscriptionView() { success in
+                            if success {
+                                // Mark as subscribed and proceed to home
+                                UserDefaults.standard.set(true, forKey: "hasSubscribed")
+                                DispatchQueue.main.async {
+                                    self.window!.rootViewController = HomeViewController()
+                                    self.window!.makeKeyAndVisible()
+                                }
+                            } else {
+                                // If they decline, still go to home
+                                DispatchQueue.main.async {
+                                    self.window!.rootViewController = HomeViewController()
+                                    self.window!.makeKeyAndVisible()
+                                }
+                            }
+                        })
+                        self.window!.rootViewController = subscriptionView
+                        self.window!.makeKeyAndVisible()
+                        
+                        print("💳 Showing subscription page on app launch #\(self.getAppLaunchCount())")
+                    } else {
+                        DispatchQueue.global(qos: .userInitiated).sync {
+                            UserAPI.user = UserManager.loadUserFromFile()
+                            if UserAPI.user != nil {
+                                DispatchQueue.main.async {
+                                    self.window!.rootViewController = HomeViewController()
+                                    self.window!.makeKeyAndVisible()
+                                }
                             }
                         }
+                        
+                        print("🏠 Showing main app - Onboarding version: \(OnboardingManager.completedVersion ?? "unknown")")
                     }
                 }
+//                else {
+//                    let subscriptionView = HostingViewController(view: SubscriptionView() { success in
+//                        if success {
+//                            OnboardingViewController.completion?()
+//                            UserDefaults.standard.set(true, forKey: onboardingKey)
+//                        }
+//                    })
+//                    self.window!.rootViewController = subscriptionView
+//                    self.window!.makeKeyAndVisible()
+//                    
+//                }
             }
         }
         
@@ -92,6 +145,30 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UNUserNotificationCente
         // Called as the scene transitions from the foreground to the background.
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
+        
+        // Remove payment observer
+        SKPaymentQueue.default().remove(StoreObserver.shared)
+    }
+    
+    // MARK: - App Launch Tracking
+    
+    private func trackAppLaunch() {
+        let launchCount = UserDefaults.standard.integer(forKey: "appLaunchCount")
+        UserDefaults.standard.set(launchCount + 1, forKey: "appLaunchCount")
+        UserDefaults.standard.synchronize()
+    }
+    
+    private func getAppLaunchCount() -> Int {
+        return UserDefaults.standard.integer(forKey: "appLaunchCount")
+    }
+    
+    private func shouldShowSubscriptionPage() -> Bool {
+        let launchCount = getAppLaunchCount()
+        let hasSubscribed = UserDefaults.standard.bool(forKey: "hasSubscribed")
+        let isPremium = StoreManager.shared.isPremium
+        
+        // Show subscription on 2nd or 3rd launch if not subscribed
+        return (launchCount == 2 || launchCount == 3) && !hasSubscribed && !isPremium
     }
 }
 

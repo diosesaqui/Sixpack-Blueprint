@@ -23,9 +23,27 @@ class User: Codable {
         requestReviewCount < 3
     }
     var nextWorkout: Date {
-        guard let selectedTime = selectedTime else { return Date() + 86400 }
+        guard let selectedTime = selectedTime else { 
+            // Fallback to tomorrow at noon if no time is set
+            let calendar = Calendar.current
+            let tomorrow = calendar.date(byAdding: .day, value: 1, to: Date())!
+            return calendar.date(bySettingHour: 12, minute: 0, second: 0, of: tomorrow)!
+        }
         
-        return selectedTime.addingTimeInterval(86400)
+        let calendar = Calendar.current
+        let now = Date()
+        
+        // Get today's workout time using the selected hour and minute
+        let todayWorkoutTime = calendar.date(bySettingHour: selectedHour ?? 12, minute: selectedMinute ?? 0, second: 0, of: now)!
+        
+        // If today's workout time hasn't passed yet, return it
+        if todayWorkoutTime > now {
+            return todayWorkoutTime
+        } else {
+            // Otherwise, return tomorrow's workout time
+            let tomorrow = calendar.date(byAdding: .day, value: 1, to: todayWorkoutTime)!
+            return tomorrow
+        }
     }
     
     var mode: Mode {

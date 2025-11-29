@@ -55,7 +55,7 @@ final class LoadingView: UIView {
         countDownLabel.text = "10"
         if !nextExercise.isEmpty {
             let textToSpeak = "\(nextExercise) is coming up"
-            SpeechSynthesizer.shared.textToSpeak(text: textToSpeak)
+          //  SpeechSynthesizer.shared.textToSpeak(text: textToSpeak)
             nextExerciseLabel.text = textToSpeak
             nextExerciseLabel.textColor = .white
             nextExerciseLabel.textAlignment = .center
@@ -65,9 +65,8 @@ final class LoadingView: UIView {
         if let url = videoURL, isFirstWorkout {
             let videoView = VideoViewV2(frame: CGRect(x: 0, y: 100, width: 450, height: 500), videoURL: url)
             let videoContainer = VideoContainerView(videoView: videoView)
-
-            let vstack = VerticalStackView(arrangedSubviews: [nextExerciseLabel, countDownLabel])
-            let vstack2 = VerticalStackView(arrangedSubviews: [vstack, videoContainer], spacing: 10)
+            let vstack = VerticalStackView(arrangedSubviews: [countDownLabel, nextExerciseLabel])
+            let vstack2 = VerticalStackView(arrangedSubviews: [videoContainer, vstack], spacing: 10)
 
             // Add vstack2 to the main view
             addSubview(vstack2)

@@ -13,11 +13,15 @@ class CustomWorkoutView: UIView {
     var customWorkoutViewModel: CustomWorkoutViewModel
     weak var customWorkoutViewController: CustomWorkoutViewController?
     
+    // Configuration values
+    private var selectedSets: Int = 2
+    private var selectedDuration: Int = 10
+    private var selectedRest: Int = 5
+    
     init(vm: CustomWorkoutViewModel, customWorkoutViewController: CustomWorkoutViewController?) {
         self.customWorkoutViewModel = vm
         self.customWorkoutViewController = customWorkoutViewController
         super.init(frame: .zero)
-        bindViewModel()
         setupViews()
     }
     
@@ -27,108 +31,236 @@ class CustomWorkoutView: UIView {
     
     weak var delegate: CreateWorkoutDelegate?
     
-    func bindViewModel() {
-        
-        setPicker.setSelected = { [unowned self] set in
-            self.customWorkoutViewModel.numberOfSets = set
-        }
-        
-        durationPicker.valueSelected = { [unowned self] duration in
-            self.customWorkoutViewModel.durationOfExercise = duration
-        }
-        
-        numberOfSecondsRestPicker.valueSelected = { [unowned self] seconds in
-            self.customWorkoutViewModel.secondsOfRest = seconds
-        }
-    }
+    // MARK: - UI Components
     
+    private let scrollView = UIScrollView()
+    private let contentView = UIView()
     
-    
-    private let setPicker = SetPicker()
-    private let durationPicker = DurationPicker()
-    private let numberOfSecondsRestPicker = NumberOfSecondsRestPicker()
-    
-    private lazy var durationPickerView: UIPickerView = {
-        let dPickerView = UIPickerView()
-        dPickerView.backgroundColor = .clear
-        dPickerView.delegate = durationPicker
-        dPickerView.dataSource = durationPicker
-        return dPickerView
-    }()
-    
-    private lazy var numberOfSecondsPickerView: UIPickerView = {
-        let dPickerView = UIPickerView()
-        dPickerView.backgroundColor = .clear
-        dPickerView.delegate = numberOfSecondsRestPicker
-        dPickerView.dataSource = numberOfSecondsRestPicker
-        return dPickerView
-    }()
-    
-    private lazy var setPickerView: UIPickerView = {
-        let sp = UIPickerView()
-        sp.backgroundColor = .clear
-        sp.dataSource = setPicker
-        sp.delegate = setPicker
-        return sp
-    }()
-    
-    private let setPickerLabel: UILabel = {
+    private let setsLabel: UILabel = {
         let label = UILabel()
         label.text = "Select a number of sets!"
-        label.font = UIDevice.isIpad ? UIFont.makeAvenirNext(size: 28) : UIFont.makeTitleFontDB(size: 22)
+        label.font = UIFont.boldSystemFont(ofSize: 24)
         label.textColor = .white
+        label.numberOfLines = 0
         return label
-        
     }()
     
-    private let setNumberOfRestLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Select seconds of rest!"
-        label.font = UIDevice.isIpad ? UIFont.makeAvenirNext(size: 28) : UIFont.makeTitleFontDB(size: 22)
-        label.textColor = .white
-        return label
-        
-    }()
+    private let setsSelectionView = UIView()
+    private var setsButtons: [UIButton] = []
     
-    private let durationPickerLabel: UILabel = {
+    private let durationLabel: UILabel = {
         let label = UILabel()
         label.text = "Select duration of each exercise!"
-        label.font = UIDevice.isIpad ? UIFont.makeAvenirNext(size: 28) : UIFont.makeTitleFontDB(size: 22)
+        label.font = UIFont.boldSystemFont(ofSize: 24)
         label.textColor = .white
-        label.backgroundColor = .black
+        label.numberOfLines = 0
         return label
-        
     }()
     
-    private lazy var pickerStackView: UIStackView = {
-        let psv = UIStackView(arrangedSubviews: [setPickerLabel, setPickerView, durationPickerLabel, durationPickerView, setNumberOfRestLabel, numberOfSecondsPickerView, createWorkoutButton])
-        psv.axis = .vertical
-        psv.distribution = .fillProportionally
-        psv.spacing = 4
-        psv.backgroundColor = .black
-        return psv
+    private let durationSelectionView = UIView()
+    private var durationButtons: [UIButton] = []
+    
+    private let restLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Select seconds of rest!"
+        label.font = UIFont.boldSystemFont(ofSize: 24)
+        label.textColor = .white
+        label.numberOfLines = 0
+        return label
     }()
     
-    private lazy var createWorkoutButton: UIButton = {
-        let button = UIButton()
+    private let restSelectionView = UIView()
+    private var restButtons: [UIButton] = []
+    
+    private lazy var selectExercisesButton: UIButton = {
+        let button = UIButton(type: .system)
         button.setTitle("Select Exercises", for: .normal)
-        button.setTitleColor(UIColor.goatBlack, for: .normal)
-        button.isUserInteractionEnabled = true
-        button.backgroundColor = .goatBlue
-        button.titleLabel?.font = UIDevice.isIpad ? UIFont.makeTitleFontDB(size: 30) : UIFont.makeTitleFontDB(size: 20)
-        button.addTarget(self, action: #selector(selectExercises(_:)), for: .touchDown)
-        button.layer.cornerRadius = UIDevice.isIpad ? 40 : 30
-        button.layer.masksToBounds = true
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.heightAnchor.constraint(equalToConstant: 60).isActive =  true
+        button.setTitleColor(.black, for: .normal)
+        button.backgroundColor = UIColor.systemBlue
+        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
+        button.layer.cornerRadius = 25
+        button.addTarget(self, action: #selector(selectExercises), for: .touchUpInside)
         return button
     }()
     
-    @objc func selectExercises(_ sender: UIButton) {
-        let numberOfSets = setPicker.selectedSet ?? 2
-        let duration = durationPicker.selectedValue ?? 10
-        customWorkoutViewModel.numberOfSets = numberOfSets
-        customWorkoutViewModel.durationOfExercise = duration
+    // MARK: - Setup Methods
+    
+    private func setupViews() {
+        backgroundColor = .black
+        setupScrollView()
+        setupSetsSelection()
+        setupDurationSelection()
+        setupRestSelection()
+        setupSelectButton()
+    }
+    
+    private func setupScrollView() {
+        addSubview(scrollView)
+        scrollView.addSubview(contentView)
+        
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            scrollView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -100),
+            
+            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor)
+        ])
+    }
+    
+    private func setupSetsSelection() {
+        contentView.addSubview(setsLabel)
+        contentView.addSubview(setsSelectionView)
+        
+        setsLabel.translatesAutoresizingMaskIntoConstraints = false
+        setsSelectionView.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            setsLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
+            setsLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            setsLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            
+            setsSelectionView.topAnchor.constraint(equalTo: setsLabel.bottomAnchor, constant: 20),
+            setsSelectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            setsSelectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            setsSelectionView.heightAnchor.constraint(equalToConstant: 60)
+        ])
+        
+        // Create sets buttons (2, 3, 4, 5)
+        let setsOptions = [2, 3, 4, 5]
+        // Set default value
+        customWorkoutViewModel.numberOfSets = setsOptions[0]
+        createSelectionButtons(in: setsSelectionView, options: setsOptions.map { "\($0)" }, selectedIndex: 0) { [weak self] index in
+            self?.selectedSets = setsOptions[index]
+            self?.customWorkoutViewModel.numberOfSets = setsOptions[index]
+        }
+        setsButtons = setsSelectionView.subviews.compactMap { $0 as? UIButton }
+    }
+    
+    private func setupDurationSelection() {
+        contentView.addSubview(durationLabel)
+        contentView.addSubview(durationSelectionView)
+        
+        durationLabel.translatesAutoresizingMaskIntoConstraints = false
+        durationSelectionView.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            durationLabel.topAnchor.constraint(equalTo: setsSelectionView.bottomAnchor, constant: 40),
+            durationLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            durationLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            
+            durationSelectionView.topAnchor.constraint(equalTo: durationLabel.bottomAnchor, constant: 20),
+            durationSelectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            durationSelectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            durationSelectionView.heightAnchor.constraint(equalToConstant: 60)
+        ])
+        
+        // Create duration buttons (10, 15, 20, 25, 30)
+        let durationOptions = [10, 15, 20, 25, 30]
+        // Set default value
+        customWorkoutViewModel.durationOfExercise = durationOptions[0]
+        createSelectionButtons(in: durationSelectionView, options: durationOptions.map { "\($0)" }, selectedIndex: 0) { [weak self] index in
+            self?.selectedDuration = durationOptions[index]
+            self?.customWorkoutViewModel.durationOfExercise = durationOptions[index]
+        }
+        durationButtons = durationSelectionView.subviews.compactMap { $0 as? UIButton }
+    }
+    
+    private func setupRestSelection() {
+        contentView.addSubview(restLabel)
+        contentView.addSubview(restSelectionView)
+        
+        restLabel.translatesAutoresizingMaskIntoConstraints = false
+        restSelectionView.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            restLabel.topAnchor.constraint(equalTo: durationSelectionView.bottomAnchor, constant: 40),
+            restLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            restLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            
+            restSelectionView.topAnchor.constraint(equalTo: restLabel.bottomAnchor, constant: 20),
+            restSelectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            restSelectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            restSelectionView.heightAnchor.constraint(equalToConstant: 60),
+            restSelectionView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -20)
+        ])
+        
+        // Create rest buttons (5, 10, 15, 20)
+        let restOptions = [5, 10, 15, 20]
+        createSelectionButtons(in: restSelectionView, options: restOptions.map { "\($0)" }, selectedIndex: 0) { [weak self] index in
+            self?.selectedRest = restOptions[index]
+            self?.customWorkoutViewModel.secondsOfRest = restOptions[index]
+        }
+        restButtons = restSelectionView.subviews.compactMap { $0 as? UIButton }
+    }
+    
+    private func setupSelectButton() {
+        addSubview(selectExercisesButton)
+        selectExercisesButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            selectExercisesButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            selectExercisesButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            selectExercisesButton.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            selectExercisesButton.heightAnchor.constraint(equalToConstant: 50)
+        ])
+    }
+    
+    private func createSelectionButtons(in containerView: UIView, options: [String], selectedIndex: Int, onSelection: @escaping (Int) -> Void) {
+        let stackView = UIStackView()
+        stackView.axis = .horizontal
+        stackView.distribution = .fillEqually
+        stackView.spacing = 12
+        stackView.alignment = .fill
+        
+        containerView.addSubview(stackView)
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.fillSuperview()
+        
+        for (index, option) in options.enumerated() {
+            let button = UIButton(type: .system)
+            button.setTitle(option, for: .normal)
+            button.setTitleColor(.lightGray, for: .normal)
+            button.setTitleColor(.black, for: .selected)
+            button.backgroundColor = UIColor.darkGray.withAlphaComponent(0.3)
+            button.layer.cornerRadius = 25
+            button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
+            button.tag = index
+            
+            if index == selectedIndex {
+                button.isSelected = true
+                button.backgroundColor = UIColor.systemBlue
+                button.setTitleColor(.black, for: .normal)
+            }
+            
+            button.addAction(UIAction { _ in
+                // Deselect all buttons in this container
+                for btn in stackView.arrangedSubviews.compactMap({ $0 as? UIButton }) {
+                    btn.isSelected = false
+                    btn.backgroundColor = UIColor.darkGray.withAlphaComponent(0.3)
+                    btn.setTitleColor(.lightGray, for: .normal)
+                }
+                
+                // Select tapped button
+                button.isSelected = true
+                button.backgroundColor = UIColor.systemBlue
+                button.setTitleColor(.black, for: .normal)
+                
+                onSelection(index)
+            }, for: .touchUpInside)
+            
+            stackView.addArrangedSubview(button)
+        }
+    }
+    
+    @objc private func selectExercises() {
         advanceToExerciseSelection()
     }
     
@@ -141,25 +273,4 @@ class CustomWorkoutView: UIView {
             exerciseView.fillSuperview(padding: UIEdgeInsets(top: 12, left: 12, bottom: 12, right: 12))
         }
     }
-    
-    private func promptUser() {
-        let ac = AlertController.alert("Oops!", message: "Make sure to select both options!")
-        customWorkoutViewController?.present(ac, animated: true, completion: nil)
-    }
-    
-    
-    private func setupPickerStackView() {
-        addSubview(pickerStackView)
-        pickerStackView.translatesAutoresizingMaskIntoConstraints = false
-        pickerStackView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 12).isActive = true
-        pickerStackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16).isActive = true
-        pickerStackView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16).isActive = true
-        pickerStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16).isActive = true
-    }
-        
-    private func setupViews() {
-        backgroundColor = .black
-        setupPickerStackView()
-    }
-    
 }

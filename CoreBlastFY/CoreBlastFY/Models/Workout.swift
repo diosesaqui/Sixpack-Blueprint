@@ -15,9 +15,10 @@ struct Workout: Codable {
         self.exercises = exercises
     }
     
-    init(exercises: [Exercise], numberOfSets: Int, duration: Int, isCustom: Bool = false) {
+    init(exercises: [Exercise], numberOfSets: Int, duration: Int, secondsOfRest: Int = 5, isCustom: Bool = false) {
         customNumberOfSets = numberOfSets
         customSecondsOfExercise = duration
+        customSecondsOfRest = secondsOfRest
         self.exercises = exercises
         self.user = UserManager.loadUserFromFile()
         self.isCustom = isCustom
@@ -82,8 +83,13 @@ struct Workout: Codable {
     
     var customSecondsOfExercise: Int?
     var customNumberOfSets: Int?
+    var customSecondsOfRest: Int?
     
     var secondsOfRest: Int {
+        // Return custom rest duration if this is a custom workout
+        if isCustom, let customRest = customSecondsOfRest {
+            return customRest
+        }
         switch user.totalPoints {
         case 0...4: return 10
         case 5...15: return 10

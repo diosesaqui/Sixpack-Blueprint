@@ -133,7 +133,13 @@ class UserManager {
             guard let decodedData = try? Data(contentsOf: archiveURL) else { return User() }
             
              do {
-                let user = try jsonDecoder.decode(User.self, from: decodedData)
+                var user = try jsonDecoder.decode(User.self, from: decodedData)
+                
+                // Restore the selectedTime from UserDefaults
+                if let savedWorkoutTime = UserDefaults.standard.object(forKey: workoutDateKey) as? Date {
+                    user.selectedTime = savedWorkoutTime
+                }
+                
                 return user
              } catch let error {
                  print(error)

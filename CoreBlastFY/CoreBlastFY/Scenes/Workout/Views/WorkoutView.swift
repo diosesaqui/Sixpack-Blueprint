@@ -7,6 +7,72 @@
 //
 
 import UIKit
+import SwiftUI
+import Combine
+
+class ExerciseViewModel: ObservableObject {
+    @Published var exercises: [String] = []
+    
+    init(exercises: [String]) {
+        self.exercises = exercises
+    }
+}
+
+struct ExerciseListView: View {
+    @ObservedObject var viewModel: ExerciseViewModel
+
+    var body: some View {
+        NavigationView {
+            List(viewModel.exercises, id: \.self) { exercise in
+                Text(exercise)
+            }
+            .navigationTitle("Exercise order")
+        }
+    }
+}
+
+class ExerciseIconView: UIView {
+
+    let iconButton: UIButton
+    private var viewModel: ExerciseViewModel
+
+    init(frame: CGRect, exercises: [String]) {
+        iconButton = UIButton(type: .system)
+        viewModel = ExerciseViewModel(exercises: exercises)
+        super.init(frame: frame)
+
+        setupIconButton()
+        addTapGesture()
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    private func setupIconButton() {
+        iconButton.setImage(UIImage(systemName: "list.bullet"), for: .normal)
+        iconButton.tintColor = .goatBlue
+        iconButton.isUserInteractionEnabled = true
+        iconButton.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(iconButton)
+    }
+
+    private func addTapGesture() {
+        iconButton.addTarget(self, action: #selector(iconTapped), for: .touchUpInside)
+    }
+
+    @objc private func iconTapped() {
+        let swiftUIView = ExerciseListView(viewModel: viewModel)
+        let hostingController = UIHostingController(rootView: swiftUIView)
+        
+        if let topController = UIApplication.shared.windows.first?.rootViewController {
+            topController.present(hostingController, animated: true, completion: nil)
+        }
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: PauseWorkoutNotification, object: self)
+        }
+    }
+}
 
 let workoutCompleteNotification = NSNotification.Name("workoutCompleteNotification")
 let workoutCompleteNotification2 = NSNotification.Name("workoutCompleteNotification2")
@@ -32,6 +98,7 @@ class WorkoutView: UIView {
    
     
     var loadingView: LoadingView?
+    lazy var exerciseIconView = ExerciseIconView(frame: CGRect(x: 0, y: 0, width: 100, height: 100), exercises: exercises.map { $0.name })
     
     private var videoView: VideoView?
     
@@ -88,8 +155,21 @@ class WorkoutView: UIView {
             }
     }
     
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let buttonPoint = exerciseIconView.convert(point, from: self)
+        
+        // Check if the point is within the icon button bounds
+        if exerciseIconView.iconButton.point(inside: buttonPoint, with: event) {
+            return exerciseIconView.iconButton
+        }
+        
+        // Otherwise, handle as normal
+        return super.hitTest(point, with: event)
+    }
+    
     func resumeWorkout() {
         DispatchQueue.main.async { [weak self] in
+            self?.exerciseIconView.isHidden = false
             self?.pauseLabel.isHidden = true
             self?.durationLeftLabel.isHidden = false
             self?.timeLeftLabel.isHidden = false
@@ -102,6 +182,7 @@ class WorkoutView: UIView {
     
     func pauseWorkout() {
         DispatchQueue.main.async { [weak self] in
+            self?.exerciseIconView.isHidden = true
             self?.pauseLabel.isHidden = false
             self?.durationLeftLabel.isHidden = true
             self?.timeLeftLabel.isHidden = true
@@ -137,6 +218,7 @@ class WorkoutView: UIView {
     }
     
     private func hideLabelsForTransition() {
+        exerciseIconView.isHidden = true
         tipsLabel.isHidden = true
         instructionsLabel.isHidden = true
         setCountLabel.isHidden = true
@@ -146,6 +228,7 @@ class WorkoutView: UIView {
     }
     
     private func showLabelsAfterTransition() {
+        exerciseIconView.isHidden = false
         tipsLabel.isHidden = false
         instructionsLabel.isHidden = false
         setCountLabel.isHidden = false
@@ -166,6 +249,7 @@ class WorkoutView: UIView {
         invalidateTimers()
         workoutComplete()
     }
+    
     
     private func updateExerciseViews() {
         
@@ -188,7 +272,7 @@ class WorkoutView: UIView {
                 self?.loadingView?.removeFromSuperview()
                 self?.resumeWorkoutForTransition()
                 self?.loadingView = nil
-                SpeechSynthesizer.shared.textToSpeak(text: tipsText)
+              //  SpeechSynthesizer.shared.textToSpeak(text: tipsText)
             }
         }
     }
@@ -222,7 +306,6 @@ class WorkoutView: UIView {
         
         let icon = #imageLiteral(resourceName: "muscleflex").withRenderingMode(.alwaysTemplate)
         
-       
         exerciseNameButton.setImage(icon, for: .normal)
         exerciseNameButton.imageView?.tintColor = UIColor.goatBlue
         exerciseNameButton.backgroundColor = UIColor.goatBlack.withAlphaComponent(0.7)
@@ -232,10 +315,18 @@ class WorkoutView: UIView {
         exerciseNameButton.setTitle(workoutViewModel.workoutDetails.exercises[iteration].name.capitalized, for: .normal)
         exerciseNameButton.titleLabel?.font = UIDevice.isIpad ? UIFont.makeAvenirNext(size: 32) : UIFont.makeAvenirNext(size: Style.titleFontSize)
         
-        let setAndExerciseContainerStackView = UIStackView(arrangedSubviews: [setCountLabel, exerciseNameButton])
-        setAndExerciseContainerStackView.distribution = .equalSpacing
+        let setAndExerciseContainerStackView = UIStackView(arrangedSubviews: [exerciseIconView, setCountLabel, exerciseNameButton])
+       // setAndExerciseContainerStackView.alignment = .leading
+        setAndExerciseContainerStackView.distribution = .equalCentering
+        setAndExerciseContainerStackView.spacing = 10
         setAndExerciseContainerStackView.backgroundColor = .clear
         
+        let containerPauseView = UIStackView(arrangedSubviews: [setAndExerciseContainerStackView, pauseLabel])
+        containerPauseView.alignment = .fill
+        containerPauseView.distribution = .fillProportionally
+        containerPauseView.axis = .vertical
+        containerPauseView.spacing = 10
+        containerPauseView.backgroundColor = .clear
         
         guard let videoView = videoView else { return }
         addSubview(videoView)
@@ -283,15 +374,15 @@ class WorkoutView: UIView {
         durationStackView.backgroundColor = .clear
 
         
-        addSubview(setAndExerciseContainerStackView)
-        setAndExerciseContainerStackView.translatesAutoresizingMaskIntoConstraints = false
-        setAndExerciseContainerStackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: Style.Dimension.edgeInsets.bottom).isActive = true
-        setAndExerciseContainerStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -Style.Dimension.edgeInsets.left).isActive = true
-        setAndExerciseContainerStackView.topAnchor.constraint(equalTo: videoView.bottomAnchor, constant: screenHeight * 0.02).isActive = true
+        addSubview(containerPauseView)
+        containerPauseView.translatesAutoresizingMaskIntoConstraints = false
+        containerPauseView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: Style.Dimension.edgeInsets.bottom).isActive = true
+        containerPauseView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -Style.Dimension.edgeInsets.left).isActive = true
+        containerPauseView.topAnchor.constraint(equalTo: videoView.bottomAnchor, constant: screenHeight * 0.02).isActive = true
         
         addSubview(tipsStackView)
         tipsStackView.translatesAutoresizingMaskIntoConstraints  = false
-        tipsStackView.topAnchor.constraint(equalTo: setAndExerciseContainerStackView.bottomAnchor, constant: screenHeight * 0.02).isActive = true
+        tipsStackView.topAnchor.constraint(equalTo: containerPauseView.bottomAnchor, constant: screenHeight * 0.02).isActive = true
         tipsStackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: Style.Dimension.edgeInsets.bottom).isActive = true
         tipsStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: Style.Dimension.edgeInsets.bottom).isActive = true
         
@@ -307,11 +398,8 @@ class WorkoutView: UIView {
         
         videoView.playVideo()
         
-        SpeechSynthesizer.shared.textToSpeak(text: tipsText)
+       // SpeechSynthesizer.shared.textToSpeak(text: tipsText)
         
-        videoView.addSubview(pauseLabel)
-        pauseLabel.centerYInSuperview()
-        pauseLabel.centerXInSuperview()
         pauseLabel.textColor = .white
         pauseLabel.isHidden = true
         

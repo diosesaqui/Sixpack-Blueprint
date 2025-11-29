@@ -51,7 +51,13 @@ class ExerciseSelectionView: UIView {
     
     private func setupContainer() {
         addSubview(container)
-        container.fillSuperview()
+        container.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            container.topAnchor.constraint(equalTo: topAnchor),
+            container.leadingAnchor.constraint(equalTo: leadingAnchor),
+            container.trailingAnchor.constraint(equalTo: trailingAnchor),
+            container.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -50) // Account for tab bar
+        ])
     }
     
     let exerciseSelectionViewDataSource = ExerciseSelectionDataSourceDelegate()

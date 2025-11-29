@@ -11,6 +11,7 @@ import AVFoundation
 
 let onboardingKey = "hasViewedWalkThrough"
 
+
 final class OnboardingViewController: UIViewController {
  
     var headingLabel = UILabel()
@@ -183,7 +184,7 @@ final class OnboardingViewController: UIViewController {
         case 3: //Done Button
             
             grabInputFromUser(datePicker)
-            UserDefaults.standard.set(true, forKey: onboardingKey)
+            OnboardingManager.markOnboardingCompleted()
             OnboardingViewController.completion?()
            
         default: break
