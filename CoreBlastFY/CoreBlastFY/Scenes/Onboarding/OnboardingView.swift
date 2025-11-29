@@ -39,6 +39,32 @@ struct OnboardingView: View {
                 }
             }
             .navigationBarHidden(true)
+            .onChange(of: currentStep) { newStep in
+                // Track onboarding funnel steps
+                trackOnboardingStep(step: newStep)
+            }
+        }
+        .onAppear {
+            // Track onboarding started
+            AnalyticsManager.shared.trackOnboardingStarted()
+        }
+    }
+    
+    private func trackOnboardingStep(step: Int) {
+        let stepNames = [
+            "welcome",
+            "core_training_importance", 
+            "feel_strong",
+            "consistency",
+            "daily_reminder",
+            "subscription"
+        ]
+        
+        if step < stepNames.count {
+            AnalyticsManager.shared.trackOnboardingStep(
+                step: stepNames[step], 
+                stepNumber: step
+            )
         }
     }
 }

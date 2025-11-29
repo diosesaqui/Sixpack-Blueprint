@@ -84,6 +84,13 @@ class PurchaseViewModel: ObservableObject {
         errorMessage = message
         showError = true
         isPurchasing = false
+        
+        // Track payment failure if we have context
+        // Note: This is a simple implementation - ideally you'd track the specific product ID
+        AnalyticsManager.shared.trackSubscriptionPaymentFailed(
+            productId: "unknown", 
+            error: message
+        )
     }
     
     // Handle purchase success
@@ -192,22 +199,30 @@ struct SubscriptionView: View {
                     .cornerRadius(10)
             }
             
-            // One-Time Offer Modal Overlay
+            // One-Time Offer Modal Overlay - DISABLED FOR NOW
+            /*
             if showOneTimeOffer {
                 OneTimeOfferModal(
                     isPresented: $showOneTimeOffer,
                     onPurchase: { option in
+                        AnalyticsManager.shared.trackOneTimeOfferAccepted()
                         viewModel.purchase(productID: option.id)
                     },
                     onDismiss: {
+                        AnalyticsManager.shared.trackOneTimeOfferDismissed()
                         // When user dismisses the one-time offer, complete onboarding without purchase
                         callBack?(false)
                     }
                 )
             }
+            */
         }
         .onAppear {
             selectedOption = options.first // Select yearly by default
+            
+            // Track subscription view shown
+            AnalyticsManager.shared.trackSubscriptionViewShown(trigger: "onboarding")
+            
             viewModel.callBack = { success in
                 if success {
                     callBack?(success)
@@ -232,7 +247,12 @@ struct SubscriptionView: View {
                 HStack {
                     Spacer()
                     Button(action: {
-                        showOneTimeOffer = true
+                        // Disabled one-time offer for now
+                        // AnalyticsManager.shared.trackOneTimeOfferShown()
+                        // showOneTimeOffer = true
+                        
+                        // Instead, just dismiss normally
+                        callBack?(false)
                     }) {
                         Image(systemName: "xmark")
                             .font(.system(size: 18, weight: .medium))
@@ -354,6 +374,12 @@ struct SubscriptionView: View {
                             isPopular: isPopular
                         ) {
                             selectedOption = option
+                            
+                            // Track subscription option selection
+                            AnalyticsManager.shared.trackSubscriptionOptionSelected(
+                                productId: option.id,
+                                isYearly: option.id == InAppIds.premiumAnnual
+                            )
                         }
                     }
                 }
@@ -363,6 +389,8 @@ struct SubscriptionView: View {
                 // Subscribe Button - dynamic text based on selected option
                 Button(action: {
                     if let selectedOption = selectedOption {
+                        // Track payment started
+                        AnalyticsManager.shared.trackSubscriptionPaymentStarted(productId: selectedOption.id)
                         viewModel.purchase(productID: selectedOption.id)
                     }
                 }) {

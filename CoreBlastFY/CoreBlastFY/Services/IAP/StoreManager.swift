@@ -126,6 +126,13 @@ class StoreManager: NSObject, ObservableObject {
             //Always finish a transaction.
             await transaction.finish()
             
+            // Track successful purchase in Analytics
+            AnalyticsManager.shared.trackSubscriptionStarted(
+                productId: product.id, 
+                price: Double(truncating: product.price as NSNumber)
+            )
+            AnalyticsManager.shared.setSubscriptionStatus(true)
+            
             // Notify success
             NotificationCenter.default.post(name: PurchaseSuccess, object: nil)
             print("✅ Purchase successful: \(product.id)")

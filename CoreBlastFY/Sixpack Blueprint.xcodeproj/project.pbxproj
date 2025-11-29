@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -21,6 +21,9 @@
 		45BC74782EDA7EA3003AC964 /* OnboardingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BC74762EDA7EA3003AC964 /* OnboardingManager.swift */; };
 		45BC747A2EDA839A003AC964 /* ExerciseVideoPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BC74792EDA8399003AC964 /* ExerciseVideoPlayerView.swift */; };
 		45BC748C2EDA8A56003AC964 /* LiquidGlossTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BC748B2EDA8A56003AC964 /* LiquidGlossTabBar.swift */; };
+		45BC748E2EDAACCA003AC964 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 45BC748D2EDAACCA003AC964 /* GoogleService-Info.plist */; };
+		45BC74912EDAAD6F003AC964 /* AnalyticsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BC748F2EDAAD6F003AC964 /* AnalyticsManager.swift */; };
+		45BC74942EDAAFBC003AC964 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 45BC74932EDAAFBC003AC964 /* FirebaseAnalytics */; };
 		7A0116522471C8840070EB5F /* StoreObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0116512471C8840070EB5F /* StoreObserver.swift */; };
 		7A0116542471C8900070EB5F /* StoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0116532471C8900070EB5F /* StoreManager.swift */; };
 		7A04A1C42888CC990018FE38 /* Progression+SwiftUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A04A1C32888CC990018FE38 /* Progression+SwiftUI.swift */; };
@@ -215,6 +218,8 @@
 		45BC74762EDA7EA3003AC964 /* OnboardingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingManager.swift; sourceTree = "<group>"; };
 		45BC74792EDA8399003AC964 /* ExerciseVideoPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseVideoPlayerView.swift; sourceTree = "<group>"; };
 		45BC748B2EDA8A56003AC964 /* LiquidGlossTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlossTabBar.swift; sourceTree = "<group>"; };
+		45BC748D2EDAACCA003AC964 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		45BC748F2EDAAD6F003AC964 /* AnalyticsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsManager.swift; sourceTree = "<group>"; };
 		7A0116512471C8840070EB5F /* StoreObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreObserver.swift; sourceTree = "<group>"; };
 		7A0116532471C8900070EB5F /* StoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreManager.swift; sourceTree = "<group>"; };
 		7A04A1C32888CC990018FE38 /* Progression+SwiftUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Progression+SwiftUI.swift"; sourceTree = "<group>"; };
@@ -393,6 +398,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				45BC74942EDAAFBC003AC964 /* FirebaseAnalytics in Frameworks */,
 				7A8CBAB723E9113100D0D6BD /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -418,6 +424,14 @@
 				45BC746B2EDA7D74003AC964 /* ExercisePreviewViewController.swift */,
 			);
 			path = ExercisePreview;
+			sourceTree = "<group>";
+		};
+		45BC74902EDAAD6F003AC964 /* Analytics */ = {
+			isa = PBXGroup;
+			children = (
+				45BC748F2EDAAD6F003AC964 /* AnalyticsManager.swift */,
+			);
+			path = Analytics;
 			sourceTree = "<group>";
 		};
 		7A0116502471C86E0070EB5F /* IAP */ = {
@@ -521,6 +535,7 @@
 				7AB74B8626CE05080068FD4E /* in outs.mov */,
 				7AB74BA826D5D73E0068FD4E /* kneedrives.mov */,
 				7A8CBAA123E9109B00D0D6BD /* Info.plist */,
+				45BC748D2EDAACCA003AC964 /* GoogleService-Info.plist */,
 			);
 			path = CoreBlastFY;
 			sourceTree = "<group>";
@@ -563,6 +578,7 @@
 		7A8CBAC823E9122500D0D6BD /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				45BC74902EDAAD6F003AC964 /* Analytics */,
 				7A2E4DFE2492F3A1007427D2 /* AboutMeData.swift */,
 				7A8CBB2F23EA6F6E00D0D6BD /* Notifications.swift */,
 				7A8CBAC923E9122500D0D6BD /* UserAPI.swift */,
@@ -992,6 +1008,9 @@
 				Base,
 			);
 			mainGroup = 7A8CBA8723E9109800D0D6BD;
+			packageReferences = (
+				45BC74922EDAAFBC003AC964 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			productRefGroup = 7A8CBA9123E9109800D0D6BD /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -1014,6 +1033,7 @@
 				7AB74B9826CE05200068FD4E /* left side plank wrap.mov in Resources */,
 				7AB74BA526CE069F0068FD4E /* open close.mov in Resources */,
 				7ABC86EB240C8C1B008DCDE3 /* Assets.xcassets in Resources */,
+				45BC748E2EDAACCA003AC964 /* GoogleService-Info.plist in Resources */,
 				7AB74B9426CE05200068FD4E /* in outs.mov in Resources */,
 				7AB74B9B26CE05200068FD4E /* reverse plank.mov in Resources */,
 				7AB74B9F26CE05200068FD4E /* pendulums.mov in Resources */,
@@ -1085,6 +1105,7 @@
 				7A8CBB2023E912C700D0D6BD /* ProgressionPicCollectionViewCell.swift in Sources */,
 				7A8CBB1923E912C700D0D6BD /* PreWorkoutRouter.swift in Sources */,
 				7A173C7626C099E000EDCE70 /* WorkoutOfTheDayRouter.swift in Sources */,
+				45BC74912EDAAD6F003AC964 /* AnalyticsManager.swift in Sources */,
 				7A8CBAF223E912B100D0D6BD /* Exercise.swift in Sources */,
 				7AC36D1C2454A783002764F5 /* MealDetailsInteractor.swift in Sources */,
 				7A56E89A249BE739004AA193 /* AppInfo.swift in Sources */,
@@ -1355,7 +1376,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 46;
+				CURRENT_PROJECT_VERSION = 47;
 				DEVELOPMENT_TEAM = 652R6A63L8;
 				INFOPLIST_FILE = CoreBlastFY/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Sixpack Blueprint: Abs Trainer";
@@ -1365,7 +1386,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0.9;
+				MARKETING_VERSION = 2.0.10;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Franchiz.CoreBlast;
 				PRODUCT_NAME = "Sixpack Blueprint";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1381,7 +1402,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 46;
+				CURRENT_PROJECT_VERSION = 47;
 				DEVELOPMENT_TEAM = 652R6A63L8;
 				INFOPLIST_FILE = CoreBlastFY/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Sixpack Blueprint: Abs Trainer";
@@ -1391,7 +1412,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0.9;
+				MARKETING_VERSION = 2.0.10;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Franchiz.CoreBlast;
 				PRODUCT_NAME = "Sixpack Blueprint";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1477,6 +1498,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		45BC74922EDAAFBC003AC964 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.6.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		45BC74932EDAAFBC003AC964 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 45BC74922EDAAFBC003AC964 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 7A8CBA8823E9109800D0D6BD /* Project object */;
 }

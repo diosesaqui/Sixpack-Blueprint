@@ -85,6 +85,15 @@ class CustomWorkoutViewController: UIViewController {
         let exercises = exerciseSelectionView.exerciseSelectionViewDataSource.selectedExercises
         customWorkoutVM.addExercises(exercises: exercises)
         
+        // Track custom workout creation
+        if let workout = customWorkoutVM.workout {
+            AnalyticsManager.shared.trackCustomWorkoutCreated(
+                exercises: exercises.count,
+                duration: workout.customSecondsOfExercise ?? 0,
+                sets: workout.customNumberOfSets ?? 0
+            )
+        }
+        
         // Navigate directly to WorkoutViewController with custom workout
         showWorkout()
     }

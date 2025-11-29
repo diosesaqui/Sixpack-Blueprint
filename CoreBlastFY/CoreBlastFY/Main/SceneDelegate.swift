@@ -35,11 +35,17 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UNUserNotificationCente
         // Track app launches
         trackAppLaunch()
         
+        // Track app launch in Firebase Analytics
+        AnalyticsManager.shared.trackAppLaunch()
+        
         // Initialize StoreKit payment observer for legacy support
         SKPaymentQueue.default().add(StoreObserver.shared)
         
         OnboardingViewController.completion = {
             DispatchQueue.main.asyncAfter(deadline: .now()) {
+                // Track onboarding completion
+                AnalyticsManager.shared.trackOnboardingCompleted()
+                
                 // add animation
                 let homeVC = HomeViewController()
                 homeVC.modalPresentationStyle = .fullScreen

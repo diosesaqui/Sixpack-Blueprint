@@ -177,8 +177,25 @@ class WorkoutViewController: UIViewController, WorkoutDisplayLogic {
         
         print("🏋️‍♂️ Workout completed! Total: \(newCount)")
         
+        // Track workout completion in Firebase Analytics
+        if let workout = interactor?.workout {
+            let workoutType = workout.isCustom ? "custom" : "preset"
+            let exerciseCount = workout.isCustom ? workout.exercises.count : workout.exercisesToReturn.count
+            let duration = workout.isCustom ? workout.customWorkoutDuration : workout.workoutDuration
+            
+            AnalyticsManager.shared.trackWorkoutCompleted(
+                workoutType: workoutType,
+                duration: duration,
+                exercises: exerciseCount
+            )
+            
+            // Update user properties
+            AnalyticsManager.shared.setWorkoutCount(newCount)
+        }
+        
         // Check if we need to show paywall after 3 completed workouts
         if newCount >= 3 && !isUserSubscribed() {
+            AnalyticsManager.shared.trackPaywallShown(workoutsCompleted: newCount)
             DispatchQueue.main.async {
                 self.showPaywallAfterWorkout()
             }

@@ -9,6 +9,8 @@
 import UIKit
 import BackgroundTasks
 import StoreKit
+import FirebaseCore
+import FirebaseAnalytics
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -38,6 +40,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 //      }
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        
+        // Initialize Firebase
+        FirebaseApp.configure()
         
         SKPaymentQueue.default().add(StoreObserver.shared)
         
