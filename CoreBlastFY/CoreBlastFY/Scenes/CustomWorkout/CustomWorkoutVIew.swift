@@ -38,7 +38,7 @@ class CustomWorkoutView: UIView {
     
     private let setsLabel: UILabel = {
         let label = UILabel()
-        label.text = "Select a number of sets!"
+        label.text = "Select a number of sets"
         label.font = UIFont.boldSystemFont(ofSize: 24)
         label.textColor = .white
         label.numberOfLines = 0
@@ -50,7 +50,7 @@ class CustomWorkoutView: UIView {
     
     private let durationLabel: UILabel = {
         let label = UILabel()
-        label.text = "Select duration of each exercise!"
+        label.text = "Select duration of each exercise"
         label.font = UIFont.boldSystemFont(ofSize: 24)
         label.textColor = .white
         label.numberOfLines = 0
@@ -62,7 +62,7 @@ class CustomWorkoutView: UIView {
     
     private let restLabel: UILabel = {
         let label = UILabel()
-        label.text = "Select seconds of rest!"
+        label.text = "Select seconds of rest"
         label.font = UIFont.boldSystemFont(ofSize: 24)
         label.textColor = .white
         label.numberOfLines = 0
@@ -73,10 +73,10 @@ class CustomWorkoutView: UIView {
     private var restButtons: [UIButton] = []
     
     private lazy var selectExercisesButton: UIButton = {
-        let button = UIButton(type: .system)
+        let button = UIButton(type: .custom)
         button.setTitle("Select Exercises", for: .normal)
         button.setTitleColor(.black, for: .normal)
-        button.backgroundColor = UIColor.systemBlue
+        button.backgroundColor = UIColor.goatBlue
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
         button.layer.cornerRadius = 25
         button.addTarget(self, action: #selector(selectExercises), for: .touchUpInside)
@@ -225,7 +225,7 @@ class CustomWorkoutView: UIView {
         stackView.fillSuperview()
         
         for (index, option) in options.enumerated() {
-            let button = UIButton(type: .system)
+            let button = UIButton(type: .custom)
             button.setTitle(option, for: .normal)
             button.setTitleColor(.lightGray, for: .normal)
             button.setTitleColor(.black, for: .selected)
@@ -236,7 +236,7 @@ class CustomWorkoutView: UIView {
             
             if index == selectedIndex {
                 button.isSelected = true
-                button.backgroundColor = UIColor.systemBlue
+                button.backgroundColor = UIColor.goatBlue
                 button.setTitleColor(.black, for: .normal)
             }
             
@@ -250,7 +250,7 @@ class CustomWorkoutView: UIView {
                 
                 // Select tapped button
                 button.isSelected = true
-                button.backgroundColor = UIColor.systemBlue
+                button.backgroundColor = UIColor.goatBlue
                 button.setTitleColor(.black, for: .normal)
                 
                 onSelection(index)

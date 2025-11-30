@@ -30,6 +30,8 @@ struct OnboardingView: View {
                 } else if currentStep == 4 {
                     DailyReminderView(currentStep: $currentStep, selectedTime: $selectedTime)
                 } else if currentStep == 5 {
+                    ReviewPromptView(currentStep: $currentStep)
+                } else if currentStep == 6 {
                     SubscriptionView() { success in
                         currentStep += 1
                         // Always mark onboarding as completed, regardless of subscription success
@@ -57,6 +59,7 @@ struct OnboardingView: View {
             "feel_strong",
             "consistency",
             "daily_reminder",
+            "review_prompt",
             "subscription"
         ]
         
@@ -77,14 +80,14 @@ struct WelcomeView: View {
             Color.black.edgesIgnoringSafeArea(.all)
             
             VStack {
-                ProgressIndicator(currentStep: 0, totalSteps: 5)
+                ProgressIndicator(currentStep: 0, totalSteps: 6)
                     .padding(.top, 20)
                 
                 Spacer()
                 
                 ZStack {
                     Circle()
-                        .fill(Color.blue.opacity(0.8))
+                        .fill(Color.goatBlue.opacity(0.8))
                         .frame(width: 120, height: 120)
                     
                     Image(systemName: "figure.strengthtraining.traditional")
@@ -129,7 +132,7 @@ struct CoreTrainingImportanceView: View {
             Color.black.edgesIgnoringSafeArea(.all)
             
             VStack {
-                ProgressIndicator(currentStep: 1, totalSteps: 5)
+                ProgressIndicator(currentStep: 1, totalSteps: 6)
                     .padding(.top, 20)
                 
                 Spacer()
@@ -181,7 +184,7 @@ struct FeelStrongView: View {
             Color.black.edgesIgnoringSafeArea(.all)
             
             VStack {
-                ProgressIndicator(currentStep: 2, totalSteps: 5)
+                ProgressIndicator(currentStep: 2, totalSteps: 6)
                     .padding(.top, 20)
                 
                 Spacer()
@@ -233,7 +236,7 @@ struct ConsistencyView: View {
             Color.black.edgesIgnoringSafeArea(.all)
             
             VStack {
-                ProgressIndicator(currentStep: 3, totalSteps: 5)
+                ProgressIndicator(currentStep: 3, totalSteps: 6)
                     .padding(.top, 20)
                 
                 Spacer()
@@ -351,7 +354,7 @@ struct DailyReminderView: View {
             Color.black.edgesIgnoringSafeArea(.all)
             
             VStack {
-                ProgressIndicator(currentStep: 4, totalSteps: 5)
+                ProgressIndicator(currentStep: 4, totalSteps: 6)
                     .padding(.top, 20)
                 
                 VStack(spacing: 20) {
@@ -396,6 +399,9 @@ struct DailyReminderView: View {
                         UserManager.save()
                         UserDefaults.standard.setValue(selectedTime, forKey: UserManager.workoutDateKey)
                         
+                        // Update notifications with new time
+                        OptimizedNotificationManager.shared.updateNotificationTime(newTime: selectedTime)
+                        
                         withAnimation {
                             currentStep += 1
                         }
@@ -404,10 +410,10 @@ struct DailyReminderView: View {
                     .foregroundColor(.white)
                     .frame(width: UIScreen.main.bounds.size.width * 0.8)
                     .padding()
-                    .background(Color.blue)
+                    .background(Color.goatBlue)
                     .cornerRadius(12)
                 }
-                .padding(.bottom, 50)
+                .padding(.bottom, 100)
             }
         }
     }
@@ -433,6 +439,79 @@ struct ProgressIndicator: View {
 struct ContentView: View {
     var body: some View {
         OnboardingView()
+    }
+}
+
+struct ReviewPromptView: View {
+    @Binding var currentStep: Int
+
+    var body: some View {
+        ZStack {
+            Color.black.edgesIgnoringSafeArea(.all)
+            
+            VStack {
+                ProgressIndicator(currentStep: 5, totalSteps: 6)
+                    .padding(.top, 20)
+                
+                Spacer()
+                
+                ZStack {
+                    Circle()
+                        .fill(Color.yellow.opacity(0.8))
+                        .frame(width: 120, height: 120)
+                    
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 50))
+                        .foregroundColor(.white)
+                }
+                .padding(.bottom, 40)
+                
+                Text("Help us grow!")
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+                    .padding(.bottom, 20)
+                
+                Text("Leave a 5-star review to help other\npeople discover Sixpack Blueprint!")
+                    .font(.system(size: 18))
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+                
+                Spacer()
+                
+                VStack(spacing: 16) {
+                    Button("HELP US GROW - LEAVE REVIEW") {
+                        // Request review using StoreKit
+                        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                            SKStoreReviewController.requestReview(in: scene)
+                            UserAPI.user.requestReviewCount += 1
+                            UserManager.save()
+                        }
+                        
+                        withAnimation {
+                            currentStep += 1
+                        }
+                    }
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundColor(.white)
+                    .frame(width: UIScreen.main.bounds.size.width * 0.8)
+                    .padding()
+                    .background(Color.goatBlue)
+                    .cornerRadius(12)
+                    
+                    Button("MAYBE LATER") {
+                        withAnimation {
+                            currentStep += 1
+                        }
+                    }
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.gray)
+                }
+                .padding(.bottom, 100)
+            }
+        }
     }
 }
 

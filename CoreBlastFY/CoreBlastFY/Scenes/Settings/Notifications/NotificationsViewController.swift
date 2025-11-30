@@ -110,7 +110,7 @@ class NotificationsViewController: UIViewController, NotificationsDisplayLogic {
         view.addSubview(doneButton)
         doneButton.translatesAutoresizingMaskIntoConstraints = false
         doneButton.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
-        doneButton.topAnchor.constraint(equalTo: view.bottomAnchor, constant: NotificationsViewController.Dimensions.doneButton.bottom).isActive = true
+        doneButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -50).isActive = true
         doneButton.heightAnchor.constraint(equalToConstant: NotificationsViewController.Dimensions.doneButton.top).isActive = true
         doneButton.widthAnchor.constraint(equalToConstant: view.frame.width * NotificationsViewController.Dimensions.doneButton.left).isActive = true
         doneButton.layer.cornerRadius = NotificationsViewController.Dimensions.doneButtonCornerRadius

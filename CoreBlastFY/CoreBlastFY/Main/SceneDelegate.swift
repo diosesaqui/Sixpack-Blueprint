@@ -25,6 +25,35 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UNUserNotificationCente
         completionHandler([.alert, .badge, .sound])
     }
     
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        let notificationId = response.notification.request.identifier
+        
+        // Track notification interaction
+        AnalyticsManager.shared.trackNotificationInteraction(
+            notificationId: notificationId, 
+            action: "tapped"
+        )
+        
+        // Handle different notification types
+        if notificationId.contains("daily_workout") {
+            // Navigate to workout selection or home
+            if let homeVC = window?.rootViewController as? HomeViewController {
+                homeVC.selectedIndex = 0 // Navigate to home tab
+            }
+        } else if notificationId.contains("progress_photo") {
+            // Navigate to progression tab
+            if let homeVC = window?.rootViewController as? HomeViewController {
+                homeVC.selectedIndex = 2 // Navigate to progression tab
+            }
+        }
+        
+        completionHandler()
+    }
+    
     
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         UNUserNotificationCenter.current().delegate = self
@@ -133,6 +162,17 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UNUserNotificationCente
         DispatchQueue.main.async {
             NotificationCenter.default.post(name: PauseWorkoutNotification, object: self)
         }
+        
+        // Check streak status when app becomes active
+        if UserAPI.user != nil {
+            UserManager.checkStreakStatus()
+        }
+        
+        // Check for inactive users before updating last open time
+        OptimizedNotificationManager.shared.checkForInactiveUser()
+        
+        // Track last app open time for welcome back notifications
+        UserDefaults.standard.set(Date(), forKey: "lastAppOpenTime")
     }
     
     func sceneWillResignActive(_ scene: UIScene) {

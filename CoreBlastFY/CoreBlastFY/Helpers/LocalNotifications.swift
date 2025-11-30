@@ -9,6 +9,14 @@
 import Foundation
 import UserNotifications
 
+extension DateFormatter {
+    static let yyyyMMdd: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+}
+
 let notificationsAllowedKey = "notificationsAllowed"
 var notificationsAllowed = UserDefaults.standard.bool(forKey: notificationsAllowedKey)
 

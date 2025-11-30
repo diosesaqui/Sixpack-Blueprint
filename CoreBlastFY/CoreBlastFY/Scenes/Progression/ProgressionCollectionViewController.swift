@@ -117,11 +117,12 @@ class ProgressionCollectionViewController: UICollectionViewController, UIImagePi
     
     func setUpCameraButton() {
         
-        cameraBarButtonItem.setImage(#imageLiteral(resourceName: "newcamera").withRenderingMode(.alwaysTemplate), for: .normal)
+        cameraBarButtonItem.setImage(UIImage(systemName: "camera.fill", withConfiguration: UIImage.SymbolConfiguration(pointSize: 20, weight: .medium)), for: .normal)
         cameraBarButtonItem.tintColor = .goatBlue
         cameraBarButtonItem.addTarget(self, action: #selector(takePicture), for: .touchDown)
-        cameraBarButtonItem.contentVerticalAlignment = .fill
-        cameraBarButtonItem.contentHorizontalAlignment = .fill
+        cameraBarButtonItem.contentVerticalAlignment = .center
+        cameraBarButtonItem.contentHorizontalAlignment = .center
+        cameraBarButtonItem.imageView?.contentMode = .scaleAspectFit
         
         addCameraButton()
     }

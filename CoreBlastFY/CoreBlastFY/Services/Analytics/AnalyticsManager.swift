@@ -193,4 +193,45 @@ class AnalyticsManager {
     func setWorkoutCount(_ count: Int) {
         Analytics.setUserProperty(String(count), forName: "total_workouts")
     }
+    
+    // MARK: - Notification Events
+    
+    func trackNotificationInteraction(notificationId: String, action: String) {
+        Analytics.logEvent("notification_interaction", parameters: [
+            "notification_id": notificationId,
+            "action": action
+        ])
+    }
+    
+    func trackUserInactive(hoursInactive: Int) {
+        Analytics.logEvent("user_inactive", parameters: [
+            "hours_inactive": hoursInactive
+        ])
+    }
+    
+    func trackAchievementUnlocked(milestone: Int) {
+        Analytics.logEvent("achievement_unlocked", parameters: [
+            "milestone": milestone,
+            "achievement_type": "workout_count"
+        ])
+    }
+    
+    func trackPerfectWeek() {
+        Analytics.logEvent("perfect_week_achieved", parameters: [
+            "streak_length": 7
+        ])
+    }
+    
+    func trackEngagementLevel(level: String) {
+        Analytics.logEvent("user_engagement_level", parameters: [
+            "engagement_level": level
+        ])
+    }
+    
+    func trackStreakMilestone(streakLength: Int) {
+        Analytics.logEvent("streak_milestone", parameters: [
+            "streak_length": streakLength,
+            "milestone_type": "workout_streak"
+        ])
+    }
 }

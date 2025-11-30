@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import UserNotifications
 
 extension Date {
     static var yesterday: Date { return Date().dayBefore }
@@ -84,6 +85,10 @@ class UserManager {
             if UserAPI.user.totalPoints < 0 {
                  UserAPI.user.totalPoints = 0
             }
+            
+            // Reset current streak if any days missed
+            UserAPI.user.currentStreak = 0
+            
             UserManager.missedWorkouts = days
             UserDefaults.standard.setValue(UserAPI.user.totalPoints, forKey: UserManager.totalPointsKey)
             save()
@@ -94,10 +99,82 @@ class UserManager {
     }
     
     static func incrementPoint() {
-        UserAPI.user.lastWorkoutComplete = Date()
+        let today = Date()
+        UserAPI.user.lastWorkoutComplete = today
         UserAPI.user.totalPoints += 1
         UserDefaults.standard.setValue(UserAPI.user.totalPoints, forKey: UserManager.totalPointsKey)
+        
+        // Update streak tracking
+        updateStreaks(workoutDate: today)
+        
+        // Clear any pending point/streak loss warnings since workout was completed
+        UNUserNotificationCenter.current().removePendingNotificationRequests(
+            withIdentifiers: ["point_loss_warning", "streak_loss_warning"]
+        )
+        
         save()
+    }
+    
+    static func updateStreaks(workoutDate: Date) {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: workoutDate)
+        
+        // Check if already worked out today to prevent duplicates
+        if let lastWorkout = UserAPI.user.lastWorkoutDate {
+            let lastWorkoutDay = calendar.startOfDay(for: lastWorkout)
+            if lastWorkoutDay == today {
+                // Already recorded workout for today, don't duplicate
+                return
+            }
+        }
+        
+        // Update total workout days
+        UserAPI.user.totalWorkoutDays += 1
+        
+        // Calculate current streak
+        if let lastWorkout = UserAPI.user.lastWorkoutDate {
+            let lastWorkoutDay = calendar.startOfDay(for: lastWorkout)
+            let daysBetween = calendar.dateComponents([.day], from: lastWorkoutDay, to: today).day ?? 0
+            
+            if daysBetween == 1 {
+                // Consecutive day - increment streak
+                UserAPI.user.currentStreak += 1
+            } else if daysBetween > 1 {
+                // Streak broken - reset to 1
+                UserAPI.user.currentStreak = 1
+            }
+            // daysBetween == 0 shouldn't happen due to check above
+        } else {
+            // First workout ever
+            UserAPI.user.currentStreak = 1
+        }
+        
+        // Update longest streak if needed
+        if UserAPI.user.currentStreak > UserAPI.user.longestStreak {
+            UserAPI.user.longestStreak = UserAPI.user.currentStreak
+        }
+        
+        // Update last workout date (after streak calculation)
+        UserAPI.user.lastWorkoutDate = today
+        
+        // Add to workout history
+        UserAPI.user.workoutHistory.append(today)
+    }
+    
+    static func checkStreakStatus() {
+        // Called on app launch to check if streak should be reset
+        guard let lastWorkout = UserAPI.user.lastWorkoutDate else { return }
+        
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let lastWorkoutDay = calendar.startOfDay(for: lastWorkout)
+        let daysBetween = calendar.dateComponents([.day], from: lastWorkoutDay, to: today).day ?? 0
+        
+        // If more than 1 day has passed since last workout, reset streak
+        if daysBetween > 1 {
+            UserAPI.user.currentStreak = 0
+            save()
+        }
     }
     
     static func calculateLevel(totalPoints: Int) {

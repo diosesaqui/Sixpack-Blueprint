@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import SwiftUI
 
 extension UIColor {
     static var goatBlack: UIColor {
@@ -15,5 +16,15 @@ extension UIColor {
     
     static var goatBlue: UIColor {
         return #colorLiteral(red: 0.1517632902, green: 0.8681253791, blue: 1, alpha: 1)
+    }
+}
+
+extension Color {
+    static var goatBlue: Color {
+        return Color(red: 0.1517632902, green: 0.8681253791, blue: 1)
+    }
+    
+    static var goatBlack: Color {
+        return Color(white: 0.1, opacity: 0.8)
     }
 }

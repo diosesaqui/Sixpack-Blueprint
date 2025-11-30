@@ -16,7 +16,7 @@ class HomeViewController: UITabBarController, MFMailComposeViewControllerDelegat
         super.viewDidLoad()
         setup()
         UserAPI.user = UserManager.loadUserFromFile()
-        registerForNotifications()
+        registerForOptimizedNotifications()
         StoreManager.shared.delegate = self
         StoreObserver.shared.delegate = self
        
@@ -98,6 +98,7 @@ class HomeViewController: UITabBarController, MFMailComposeViewControllerDelegat
     private var nutritionVC: MealPlansViewController!
     private var exercisesNavVC: UINavigationController!
     private var settingsNavController: UINavigationController!
+    private var dashboardNavController: UINavigationController!
     
     
     private func setup() {
@@ -108,7 +109,7 @@ class HomeViewController: UITabBarController, MFMailComposeViewControllerDelegat
         
         let progressionViewController = ProgressionCollectionViewController(collectionViewLayout: layout)
         progressionNavController = UINavigationController(rootViewController: progressionViewController)
-        progressionNavController.tabBarItem = UITabBarItem(title: "Progression", image:UIImage(systemName: "camera"), selectedImage: nil)
+        progressionNavController.tabBarItem = UITabBarItem(title: "Progression", image:UIImage(systemName: "camera.fill"), selectedImage: nil)
         progressionNavController.navigationBar.prefersLargeTitles = true
         progressionNavController.navigationBar.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
         
@@ -126,6 +127,13 @@ class HomeViewController: UITabBarController, MFMailComposeViewControllerDelegat
 //        journalNavViewController.tabBarItem = UITabBarItem(title: "Journal", image: journalImage, selectedImage: nil)
                 
         
+        let dashboardViewController = DashboardViewController()
+        dashboardNavController = UINavigationController(rootViewController: dashboardViewController)
+        dashboardNavController.tabBarItem = UITabBarItem(title: "Stats", image: UIImage(systemName: "chart.bar.fill"), selectedImage: nil)
+        dashboardNavController.navigationBar.prefersLargeTitles = true
+        dashboardNavController.navigationBar.barStyle = .black
+        dashboardNavController.navigationBar.titleTextAttributes = [.foregroundColor: UIColor.white]
+        
         let settingsViewController = SettingsViewController()
         settingsNavController = UINavigationController(rootViewController: settingsViewController)
         settingsNavController.tabBarItem = UITabBarItem(title: "More", image: UIImage(systemName: "gear" ), selectedImage: nil)
@@ -134,7 +142,7 @@ class HomeViewController: UITabBarController, MFMailComposeViewControllerDelegat
         settingsNavController.navigationBar.titleTextAttributes = [.foregroundColor: UIColor.white]
         
         self.setupPreworkoutVC()
-        setViewControllers([ workoutNavController,progressionNavController, settingsNavController], animated: true)
+        setViewControllers([workoutNavController, progressionNavController, dashboardNavController,  settingsNavController], animated: true)
         self.customizableViewControllers = []
         
         selectedViewController = viewControllers?[0]
@@ -149,7 +157,7 @@ class HomeViewController: UITabBarController, MFMailComposeViewControllerDelegat
         appearance.backgroundColor = UIColor.black.withAlphaComponent(0.8)
         
         // Selection indicator
-        appearance.selectionIndicatorTintColor = UIColor.systemBlue
+        appearance.selectionIndicatorTintColor = UIColor.goatBlue
         
         // Normal state styling
         appearance.stackedLayoutAppearance.normal.iconColor = UIColor.white.withAlphaComponent(0.6)
@@ -159,9 +167,9 @@ class HomeViewController: UITabBarController, MFMailComposeViewControllerDelegat
         ]
         
         // Selected state styling
-        appearance.stackedLayoutAppearance.selected.iconColor = UIColor.systemBlue
+        appearance.stackedLayoutAppearance.selected.iconColor = UIColor.goatBlue
         appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
-            .foregroundColor: UIColor.systemBlue,
+            .foregroundColor: UIColor.goatBlue,
             .font: UIFont.systemFont(ofSize: 11, weight: .semibold)
         ]
         
@@ -171,7 +179,7 @@ class HomeViewController: UITabBarController, MFMailComposeViewControllerDelegat
         
         // Additional styling
         tabBar.isTranslucent = true
-        tabBar.tintColor = UIColor.systemBlue
+        tabBar.tintColor = UIColor.goatBlue
         tabBar.unselectedItemTintColor = UIColor.white.withAlphaComponent(0.6)
         
         // Background color

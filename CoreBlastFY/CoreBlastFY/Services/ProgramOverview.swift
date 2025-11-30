@@ -9,15 +9,32 @@
 import Foundation
 
 let programOverview = """
-This program is broken up into 5 levels!
-\nBeginner, Novice, Solid, Advanced, and Rockstar.
-\nThe program was made to be efficient yet with simplicity to get you to your goals as safely and fastly as possible.
-\nYour job is to come in, press start and follow the days workout, as you complete workouts you'll gain points and advance to the next level.
-\nNew levels progress the program to slowly get harder by increasing duration and sets!
-\nAlso be sure to read the free nutrition tips to make sure your diet is helping and not holding you back!
-\nLast but not least, use your private progression pics to keep track of your progress thruout the journey!
-\nHave fun, breathe thru when it gets tough, and never ever give up on your goals!
+🚀 YOUR TRANSFORMATION JOURNEY STARTS HERE! 
+
+This isn't just another program—it's your pathway to becoming the strongest version of yourself through 5 powerful levels: Beginner → Novice → Solid → Advanced → Rockstar.
+
+💪 EVERY WORKOUT COUNTS
+Each session you complete earns you points and moves you closer to your goal. No excuses, no shortcuts—just you vs. yesterday's you. Show up consistently and watch your body transform.
+
+🎯 YOUR DAILY COMMITMENT
+Hit START. Follow the workout. Complete it. Repeat. That's your non-negotiable daily promise to yourself. Miss a day? Your progress waits for no one.
+
+📈 PROGRESSIVE CHALLENGE
+As you level up, so does the intensity. More duration, more sets, more strength. Your body will adapt, but only if you push through the discomfort.
+
+🥗 FUEL YOUR SUCCESS
+Your kitchen is your second gym. Clean eating isn't optional—it's the foundation of your results. Every meal is either moving you toward or away from your goals.
+
+📸 TRACK YOUR PROOF
+Take those progression photos. They're your reality check and your motivation when the going gets tough. Progress photos don't lie—they hold you accountable.
+
+🔥 WHEN IT GETS HARD, GET HARDER
+Champions are made in the moments when you want to quit but choose to keep going. Breathe through the burn, embrace the challenge, and remember: your future self is counting on what you do today.
+
+Your goals are waiting. Are you ready to claim them?
+
 """
+
 
 let thirtyDayChallenge = """
 See how far you can push yourself with the 30 day challenge!

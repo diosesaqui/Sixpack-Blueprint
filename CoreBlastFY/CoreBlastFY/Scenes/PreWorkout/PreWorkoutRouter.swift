@@ -78,7 +78,7 @@ class PreWorkoutRouter: NSObject, PreWorkoutRoutingLogic, PreWorkoutDataPassing 
       destination.exercises = workout.exercisesToReturn
       
       // Determine workout title based on workout type
-      let workoutTitle = workout.isCustom ? "Custom Workout" : "Wake Up"
+      let workoutTitle = workout.isCustom ? "Custom Workout" : "Time to Work"
       
       // Get exercise duration from workout - this matches what the actual workout will use
       let exerciseDuration: TimeInterval

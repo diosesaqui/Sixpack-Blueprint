@@ -122,7 +122,7 @@ class ExercisePreviewView: UIView {
         
         // Start button
         startButton.setTitle("START", for: .normal)
-        startButton.backgroundColor = UIColor.systemBlue
+        startButton.backgroundColor = UIColor.goatBlue
         startButton.tintColor = .white
         startButton.layer.cornerRadius = 25
         startButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)

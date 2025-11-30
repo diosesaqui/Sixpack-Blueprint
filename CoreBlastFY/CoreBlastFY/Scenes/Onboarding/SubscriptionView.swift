@@ -756,7 +756,7 @@ struct OneTimeOfferModal: View {
                                         .stroke(Color.cyan, lineWidth: 3)
                                         .background(
                                             RoundedRectangle(cornerRadius: 15)
-                                                .fill(Color.blue.opacity(0.3))
+                                                .fill(Color.goatBlue.opacity(0.3))
                                         )
                                 )
                             }

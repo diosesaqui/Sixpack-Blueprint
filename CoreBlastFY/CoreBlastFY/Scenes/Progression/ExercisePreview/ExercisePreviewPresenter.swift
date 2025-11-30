@@ -57,7 +57,7 @@ class ExercisePreviewPresenter: ExercisePreviewPresentationLogic {
         // Generate consistent colors based on exercise type or name
         switch exercise.type {
         case .core:
-            return UIColor.systemBlue.withAlphaComponent(0.8)
+            return UIColor.goatBlue.withAlphaComponent(0.8)
         case .legs:
             return UIColor.systemGreen.withAlphaComponent(0.8)
         case .back:

@@ -27,7 +27,7 @@ class ExerciseVideoPlayerView: UIView {
     }
     
     private func setupView() {
-        backgroundColor = UIColor.systemBlue.withAlphaComponent(0.8)
+        backgroundColor = UIColor.goatBlue.withAlphaComponent(0.8)
         layer.cornerRadius = 150
         clipsToBounds = true
     }
@@ -202,7 +202,7 @@ class ExerciseVideoPlayerView: UIView {
         ])
         
         // Set background to a rest color
-        backgroundColor = UIColor.systemOrange.withAlphaComponent(0.6)
+        backgroundColor = UIColor.goatBlue.withAlphaComponent(0.6)
     }
     
     func cleanupPlayer() {
@@ -220,7 +220,7 @@ class ExerciseVideoPlayerView: UIView {
         }
         
         // Reset background color
-        backgroundColor = UIColor.systemBlue.withAlphaComponent(0.8)
+        backgroundColor = UIColor.goatBlue.withAlphaComponent(0.8)
     }
     
     deinit {

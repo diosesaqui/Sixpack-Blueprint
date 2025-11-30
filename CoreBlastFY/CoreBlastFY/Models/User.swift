@@ -13,12 +13,51 @@ class User: Codable {
     init() {
         self.id = UUID()
     }
+    
+    // Custom decoding to handle missing properties from older saved data
+    required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Required properties
+        id = try container.decodeIfPresent(UUID.self, forKey: .id)
+        name = try container.decodeIfPresent(String.self, forKey: .name)
+        coreLevel = try container.decodeIfPresent(Level.self, forKey: .coreLevel) ?? .beginner
+        totalPoints = try container.decodeIfPresent(Int.self, forKey: .totalPoints) ?? 0
+        lastWorkoutComplete = try container.decodeIfPresent(Date.self, forKey: .lastWorkoutComplete)
+        requestReviewCount = try container.decodeIfPresent(Int.self, forKey: .requestReviewCount) ?? 0
+        
+        // Streak tracking - provide defaults for missing properties
+        currentStreak = try container.decodeIfPresent(Int.self, forKey: .currentStreak) ?? 0
+        longestStreak = try container.decodeIfPresent(Int.self, forKey: .longestStreak) ?? 0
+        totalWorkoutDays = try container.decodeIfPresent(Int.self, forKey: .totalWorkoutDays) ?? 0
+        lastWorkoutDate = try container.decodeIfPresent(Date.self, forKey: .lastWorkoutDate)
+        workoutHistory = try container.decodeIfPresent([Date].self, forKey: .workoutHistory) ?? []
+        
+        // Time properties
+        selectedHour = try container.decodeIfPresent(Int.self, forKey: .selectedHour)
+        selectedMinute = try container.decodeIfPresent(Int.self, forKey: .selectedMinute)
+        selectedTime = try container.decodeIfPresent(Date.self, forKey: .selectedTime)
+    }
+    
+    // Define coding keys for all properties
+    private enum CodingKeys: String, CodingKey {
+        case id, name, coreLevel, totalPoints, lastWorkoutComplete, requestReviewCount
+        case currentStreak, longestStreak, totalWorkoutDays, lastWorkoutDate, workoutHistory
+        case selectedHour, selectedMinute, selectedTime
+    }
     let id: UUID?
     var name: String?
     var coreLevel: Level = .beginner
     var totalPoints: Int = 0
     var lastWorkoutComplete: Date?
     var requestReviewCount = 0
+    
+    // Streak tracking
+    var currentStreak: Int = 0
+    var longestStreak: Int = 0
+    var totalWorkoutDays: Int = 0
+    var lastWorkoutDate: Date?
+    var workoutHistory: [Date] = []
     var requestReview: Bool {
         requestReviewCount < 3
     }

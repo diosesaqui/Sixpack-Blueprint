@@ -7,6 +7,7 @@
 
 import UIKit
 
+
 class ModernWorkoutView: UIView {
     
     // MARK: - Properties
@@ -16,6 +17,8 @@ class ModernWorkoutView: UIView {
     private var remainingTime: TimeInterval = 30 // Initial exercise time
     var timerIsRunning = false
     private var isRestPeriod = false // Track if we're in a rest period
+    private var isCountdownPhase = true // Track if we're in the 3-second countdown
+    private var countdownTime: TimeInterval = 3 // 3-second countdown
     
     weak var rootViewController: WorkoutViewController?
     private var workoutViewModel: WorkoutInfo.FetchWorkout.ViewModel
@@ -24,6 +27,7 @@ class ModernWorkoutView: UIView {
     private let progressLabel = UILabel() // "1 of 8"
     private let exerciseNameLabel = UILabel()
     private let timeLabel = UILabel()
+    private let countdownLabel = UILabel() // "Get Ready: 3"
     private let exerciseVideoPlayer = ExerciseVideoPlayerView()
     private let progressIndicator = CircularProgressView()
     
@@ -77,16 +81,23 @@ class ModernWorkoutView: UIView {
     }
     
     private func setupProgressIndicator() {
-        progressIndicator.lineWidth = 8
-        progressIndicator.strokeColor = UIColor.systemBlue
+        progressIndicator.lineWidth = 6
+        progressIndicator.strokeColor = UIColor.goatBlue
         progressIndicator.backgroundColor = UIColor.clear
+        
+        // Add shadow for better visual definition
+        progressIndicator.layer.shadowColor = UIColor.black.cgColor
+        progressIndicator.layer.shadowOffset = CGSize(width: 0, height: 2)
+        progressIndicator.layer.shadowRadius = 4
+        progressIndicator.layer.shadowOpacity = 0.3
+        
         addSubview(progressIndicator)
     }
     
     private func setupTopSection() {
         // Progress label (1 of 8)
         progressLabel.text = "\(iteration + 1) of \(exercises.count)"
-        progressLabel.font = UIFont.systemFont(ofSize: 18, weight: .medium)
+        progressLabel.font = UIFont.systemFont(ofSize: 20, weight: .bold)
         progressLabel.textColor = .white
         progressLabel.textAlignment = .center
         
@@ -94,13 +105,17 @@ class ModernWorkoutView: UIView {
     }
     
     private func setupCenterSection() {
-        // Exercise video player container
-        exerciseVideoPlayer.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.8)
-        exerciseVideoPlayer.layer.cornerRadius = 150
+        // Exercise video player container - perfect circle
+        exerciseVideoPlayer.backgroundColor = UIColor.clear
+        exerciseVideoPlayer.layer.cornerRadius = 190 // Perfect circle for 380x380 view
         exerciseVideoPlayer.clipsToBounds = true
         
+        // Add border for perfect circle appearance
+        exerciseVideoPlayer.layer.borderWidth = 3
+        exerciseVideoPlayer.layer.borderColor = UIColor.goatBlue.withAlphaComponent(0.4).cgColor
+        
         // Exercise name
-        exerciseNameLabel.font = UIFont.boldSystemFont(ofSize: 24)
+        exerciseNameLabel.font = UIFont.boldSystemFont(ofSize: 28)
         exerciseNameLabel.textColor = .white
         exerciseNameLabel.textAlignment = .center
         exerciseNameLabel.numberOfLines = 2
@@ -111,7 +126,7 @@ class ModernWorkoutView: UIView {
     
     private func setupBottomSection() {
         // Time display
-        timeLabel.font = UIFont.boldSystemFont(ofSize: 48)
+        timeLabel.font = UIFont.boldSystemFont(ofSize: 56)
         timeLabel.textColor = .white
         timeLabel.textAlignment = .center
         
@@ -120,13 +135,21 @@ class ModernWorkoutView: UIView {
         
         // Pause label
         pauseLabel.text = "PAUSED"
-        pauseLabel.font = UIFont.boldSystemFont(ofSize: 30)
+        pauseLabel.font = UIFont.boldSystemFont(ofSize: 36)
         pauseLabel.textColor = .white
         pauseLabel.textAlignment = .center
         pauseLabel.isHidden = true
         
+        // Countdown label
+        countdownLabel.text = "Get Ready: 3"
+        countdownLabel.font = UIFont.boldSystemFont(ofSize: 48)
+        countdownLabel.textColor = .white
+        countdownLabel.textAlignment = .center
+        countdownLabel.isHidden = false
+        
         addSubview(timeLabel)
         addSubview(pauseLabel)
+        addSubview(countdownLabel)
     }
     
     private func setupControlButtons() {
@@ -134,44 +157,64 @@ class ModernWorkoutView: UIView {
         previousButton.setImage(UIImage(systemName: "backward.end.fill"), for: .normal)
         previousButton.tintColor = .white
         previousButton.backgroundColor = UIColor.black.withAlphaComponent(0.6)
-        previousButton.layer.cornerRadius = 25
+        previousButton.layer.cornerRadius = 30
         previousButton.addTarget(self, action: #selector(previousButtonTapped), for: .touchUpInside)
         
-        // Play/Pause button
+        // Play/Pause button - signature blue primary action
         playPauseButton.setImage(UIImage(systemName: "pause.fill"), for: .normal)
         playPauseButton.tintColor = .white
-        playPauseButton.backgroundColor = UIColor.black.withAlphaComponent(0.6)
-        playPauseButton.layer.cornerRadius = 35
+        playPauseButton.backgroundColor = UIColor.goatBlue
+        playPauseButton.layer.cornerRadius = 40
+        
+        // Ensure perfect circle shape
+        playPauseButton.contentHorizontalAlignment = .center
+        playPauseButton.contentVerticalAlignment = .center
+        playPauseButton.imageView?.contentMode = .scaleAspectFit
+        playPauseButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        // Add shadow and border for better visual definition
+        playPauseButton.layer.shadowColor = UIColor.black.cgColor
+        playPauseButton.layer.shadowOffset = CGSize(width: 0, height: 4)
+        playPauseButton.layer.shadowRadius = 8
+        playPauseButton.layer.shadowOpacity = 0.3
+        playPauseButton.layer.borderWidth = 2
+        playPauseButton.layer.borderColor = UIColor.white.withAlphaComponent(0.2).cgColor
+        
         playPauseButton.addTarget(self, action: #selector(playPauseButtonTapped), for: .touchUpInside)
         
         // Next button
         nextButton.setImage(UIImage(systemName: "forward.end.fill"), for: .normal)
         nextButton.tintColor = .white
         nextButton.backgroundColor = UIColor.black.withAlphaComponent(0.6)
-        nextButton.layer.cornerRadius = 25
+        nextButton.layer.cornerRadius = 30
         nextButton.addTarget(self, action: #selector(nextButtonTapped), for: .touchUpInside)
         
-        let buttonStackView = UIStackView(arrangedSubviews: [previousButton, playPauseButton, nextButton])
-        buttonStackView.axis = .horizontal
-        buttonStackView.distribution = .fillEqually
-        buttonStackView.spacing = 40
-        buttonStackView.alignment = .center
+        // Set up buttons individually to avoid stack view distortion
+        addSubview(previousButton)
+        addSubview(playPauseButton)
+        addSubview(nextButton)
         
-        addSubview(buttonStackView)
-        buttonStackView.translatesAutoresizingMaskIntoConstraints = false
+        previousButton.translatesAutoresizingMaskIntoConstraints = false
+        nextButton.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            buttonStackView.centerXAnchor.constraint(equalTo: centerXAnchor),
-            buttonStackView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -40),
-            buttonStackView.widthAnchor.constraint(equalToConstant: 220),
-            buttonStackView.heightAnchor.constraint(equalToConstant: 70),
+            // Play/Pause button - center and perfect circle
+            playPauseButton.centerXAnchor.constraint(equalTo: centerXAnchor),
+            playPauseButton.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -40),
+            playPauseButton.widthAnchor.constraint(equalToConstant: 80),
+            playPauseButton.heightAnchor.constraint(equalToConstant: 80),
             
-            previousButton.widthAnchor.constraint(equalToConstant: 50),
-            previousButton.heightAnchor.constraint(equalToConstant: 50),
-            playPauseButton.widthAnchor.constraint(equalToConstant: 70),
-            playPauseButton.heightAnchor.constraint(equalToConstant: 70),
-            nextButton.widthAnchor.constraint(equalToConstant: 50),
-            nextButton.heightAnchor.constraint(equalToConstant: 50)
+            // Previous button - left of play/pause
+            previousButton.centerYAnchor.constraint(equalTo: playPauseButton.centerYAnchor),
+            previousButton.trailingAnchor.constraint(equalTo: playPauseButton.leadingAnchor, constant: -50),
+            previousButton.widthAnchor.constraint(equalToConstant: 60),
+            previousButton.heightAnchor.constraint(equalToConstant: 60),
+            
+            // Next button - right of play/pause
+            nextButton.centerYAnchor.constraint(equalTo: playPauseButton.centerYAnchor),
+            nextButton.leadingAnchor.constraint(equalTo: playPauseButton.trailingAnchor, constant: 50),
+            nextButton.widthAnchor.constraint(equalToConstant: 60),
+            nextButton.heightAnchor.constraint(equalToConstant: 60)
         ])
     }
     
@@ -182,37 +225,42 @@ class ModernWorkoutView: UIView {
         exerciseNameLabel.translatesAutoresizingMaskIntoConstraints = false
         timeLabel.translatesAutoresizingMaskIntoConstraints = false
         pauseLabel.translatesAutoresizingMaskIntoConstraints = false
+        countdownLabel.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            // Progress indicator (circular background)
+            // Progress indicator (circular background) - bigger and higher
             progressIndicator.centerXAnchor.constraint(equalTo: centerXAnchor),
-            progressIndicator.centerYAnchor.constraint(equalTo: centerYAnchor, constant: -50),
-            progressIndicator.widthAnchor.constraint(equalToConstant: 320),
-            progressIndicator.heightAnchor.constraint(equalToConstant: 320),
+            progressIndicator.centerYAnchor.constraint(equalTo: centerYAnchor, constant: -80),
+            progressIndicator.widthAnchor.constraint(equalToConstant: 400),
+            progressIndicator.heightAnchor.constraint(equalToConstant: 400),
             
             // Progress label
             progressLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
             progressLabel.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 20),
             
-            // Exercise video player
+            // Exercise video player - bigger and higher
             exerciseVideoPlayer.centerXAnchor.constraint(equalTo: centerXAnchor),
-            exerciseVideoPlayer.centerYAnchor.constraint(equalTo: centerYAnchor, constant: -50),
-            exerciseVideoPlayer.widthAnchor.constraint(equalToConstant: 300),
-            exerciseVideoPlayer.heightAnchor.constraint(equalToConstant: 300),
+            exerciseVideoPlayer.centerYAnchor.constraint(equalTo: centerYAnchor, constant: -80),
+            exerciseVideoPlayer.widthAnchor.constraint(equalToConstant: 380),
+            exerciseVideoPlayer.heightAnchor.constraint(equalToConstant: 380),
             
-            // Exercise name
+            // Exercise name - better spacing
             exerciseNameLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
-            exerciseNameLabel.topAnchor.constraint(equalTo: exerciseVideoPlayer.bottomAnchor, constant: 30),
+            exerciseNameLabel.topAnchor.constraint(equalTo: exerciseVideoPlayer.bottomAnchor, constant: 40),
             exerciseNameLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 40),
             exerciseNameLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -40),
             
-            // Time label
+            // Time label - better spacing
             timeLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
-            timeLabel.topAnchor.constraint(equalTo: exerciseNameLabel.bottomAnchor, constant: 20),
+            timeLabel.topAnchor.constraint(equalTo: exerciseNameLabel.bottomAnchor, constant: 25),
             
             // Pause label
             pauseLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
-            pauseLabel.centerYAnchor.constraint(equalTo: centerYAnchor)
+            pauseLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            
+            // Countdown label
+            countdownLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
+            countdownLabel.centerYAnchor.constraint(equalTo: centerYAnchor)
         ])
     }
     
@@ -221,6 +269,19 @@ class ModernWorkoutView: UIView {
         updateExerciseDisplay()
         updateTimeDisplay()
         updateProgressIndicator()
+        
+        // Hide normal UI during countdown
+        timeLabel.isHidden = true
+        exerciseNameLabel.alpha = 0.3
+        progressIndicator.alpha = 0.3
+        
+        // Disable buttons during countdown
+        previousButton.isEnabled = false
+        nextButton.isEnabled = false
+        playPauseButton.isEnabled = false
+        
+        // Update countdown display
+        updateCountdownDisplay()
     }
     
     private func updateExerciseDisplay() {
@@ -243,14 +304,47 @@ class ModernWorkoutView: UIView {
         let totalTime: TimeInterval = isRestPeriod ? TimeInterval(secondsOfRest) : exerciseDuration
         let progress = 1.0 - (remainingTime / totalTime)
         
-        // Change ring color based on rest vs exercise
+        // Change ring color and video border based on rest vs exercise
         if isRestPeriod {
             progressIndicator.strokeColor = UIColor.systemOrange
+            exerciseVideoPlayer.layer.borderColor = UIColor.systemOrange.withAlphaComponent(0.4).cgColor
         } else {
-            progressIndicator.strokeColor = UIColor.systemBlue
+            progressIndicator.strokeColor = UIColor.goatBlue
+            exerciseVideoPlayer.layer.borderColor = UIColor.goatBlue.withAlphaComponent(0.4).cgColor
         }
         
         progressIndicator.setProgress(progress, animated: true)
+    }
+    
+    private func updateCountdownDisplay() {
+        let seconds = Int(countdownTime)
+        if seconds > 0 {
+            countdownLabel.text = "Get Ready: \(seconds)"
+            countdownLabel.textColor = .white
+        } else {
+            countdownLabel.text = "GO!"
+            countdownLabel.textColor = .white
+        }
+    }
+    
+    private func endCountdown() {
+        isCountdownPhase = false
+        
+        // Show normal UI
+        countdownLabel.isHidden = true
+        timeLabel.isHidden = false
+        exerciseNameLabel.alpha = 1.0
+        progressIndicator.alpha = 1.0
+        
+        // Enable buttons
+        previousButton.isEnabled = true
+        nextButton.isEnabled = true
+        playPauseButton.isEnabled = true
+        
+        // Start video if not paused
+        if timerIsRunning {
+            exerciseVideoPlayer.play()
+        }
     }
     
     // MARK: - Timer Management
@@ -261,17 +355,29 @@ class ModernWorkoutView: UIView {
     }
     
     @objc private func timerFired() {
-        if remainingTime > 0 {
-            remainingTime -= 1
-            updateTimeDisplay()
-            updateProgressIndicator()
-        } else {
-            if isRestPeriod {
-                // End rest period, move to next exercise
-                startNextExercise()
+        if isCountdownPhase {
+            // Handle countdown phase
+            if countdownTime > 0 {
+                countdownTime -= 1
+                updateCountdownDisplay()
             } else {
-                // End current exercise, start rest or advance
-                advanceToNextExercise()
+                // Countdown finished, start actual workout
+                endCountdown()
+            }
+        } else {
+            // Handle normal workout/rest timing
+            if remainingTime > 0 {
+                remainingTime -= 1
+                updateTimeDisplay()
+                updateProgressIndicator()
+            } else {
+                if isRestPeriod {
+                    // End rest period, move to next exercise
+                    startNextExercise()
+                } else {
+                    // End current exercise, start rest or advance
+                    advanceToNextExercise()
+                }
             }
         }
     }
@@ -308,14 +414,25 @@ class ModernWorkoutView: UIView {
         updateExerciseDisplay()
         updateProgressIndicator()
         
-        // Start playing new exercise video if workout is running
-        if timerIsRunning {
+        // Start playing new exercise video if workout is running (and not in countdown)
+        if timerIsRunning && !isCountdownPhase {
             exerciseVideoPlayer.play()
         }
     }
     
     // MARK: - Control Actions
     @objc private func playPauseButtonTapped() {
+        // Don't allow pause/play during countdown
+        if isCountdownPhase {
+            return
+        }
+        
+        // Add subtle button press animation
+        playPauseButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+        UIView.animate(withDuration: 0.1) {
+            self.playPauseButton.transform = CGAffineTransform.identity
+        }
+        
         if timerIsRunning {
             pauseWorkout()
         } else {
@@ -324,6 +441,11 @@ class ModernWorkoutView: UIView {
     }
     
     @objc private func previousButtonTapped() {
+        // Don't allow navigation during countdown
+        if isCountdownPhase {
+            return
+        }
+        
         if iteration > 0 {
             // Stop current video before going back
             exerciseVideoPlayer.stop()
@@ -341,6 +463,11 @@ class ModernWorkoutView: UIView {
     }
     
     @objc private func nextButtonTapped() {
+        // Don't allow navigation during countdown
+        if isCountdownPhase {
+            return
+        }
+        
         advanceToNextExercise()
     }
     
@@ -371,6 +498,15 @@ class ModernWorkoutView: UIView {
         
         UserManager.incrementPoint()
         UserManager.calculateLevel(totalPoints: UserAPI.user.totalPoints)
+        
+        // Mark today's workout as complete for streak tracking
+        let today = Date()
+        let dateKey = "workout_\(DateFormatter.yyyyMMdd.string(from: today))"
+        UserDefaults.standard.set(true, forKey: dateKey)
+        
+        // Trigger engagement notifications
+        OptimizedNotificationManager.shared.triggerWorkoutCompletionFlow()
+        
         NotificationCenter.default.post(name: workoutCompleteNotification, object: nil)
     }
     
@@ -380,7 +516,10 @@ class ModernWorkoutView: UIView {
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        playPauseButtonTapped()
+        // Don't allow tap to pause during countdown
+        if !isCountdownPhase {
+            playPauseButtonTapped()
+        }
     }
 }
 
@@ -395,7 +534,7 @@ class CircularProgressView: UIView {
         }
     }
     
-    var strokeColor: UIColor = UIColor.systemBlue {
+    var strokeColor: UIColor = UIColor.goatBlue {
         didSet {
             progressLayer.strokeColor = strokeColor.cgColor
         }
@@ -423,7 +562,7 @@ class CircularProgressView: UIView {
     private func setupLayers() {
         // Background layer
         backgroundLayer = CAShapeLayer()
-        backgroundLayer.strokeColor = UIColor.darkGray.withAlphaComponent(0.3).cgColor
+        backgroundLayer.strokeColor = UIColor.white.withAlphaComponent(0.15).cgColor
         backgroundLayer.fillColor = UIColor.clear.cgColor
         backgroundLayer.lineWidth = lineWidth
         backgroundLayer.lineCap = .round

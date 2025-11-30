@@ -76,7 +76,7 @@ class ExercisePreviewView: UIView {
         durationLabel.textAlignment = .center
         
         setsLabel.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        setsLabel.textColor = UIColor.systemBlue
+        setsLabel.textColor = UIColor.goatBlue
         setsLabel.textAlignment = .center
         
         descriptionLabel.font = UIFont.systemFont(ofSize: 16)
@@ -117,23 +117,23 @@ class ExercisePreviewView: UIView {
     
     private func setupBottomButtons() {
         // Share button
-        shareButton.setTitle("Share Routine", for: .normal)
-        shareButton.setImage(UIImage(systemName: "square.and.arrow.up"), for: .normal)
-        shareButton.backgroundColor = UIColor.darkGray
-        shareButton.tintColor = .white
-        shareButton.layer.cornerRadius = 25
-        shareButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        shareButton.addTarget(self, action: #selector(shareButtonTapped), for: .touchUpInside)
+//        shareButton.setTitle("Share Routine", for: .normal)
+//        shareButton.setImage(UIImage(systemName: "square.and.arrow.up"), for: .normal)
+//        shareButton.backgroundColor = UIColor.darkGray
+//        shareButton.tintColor = .white
+//        shareButton.layer.cornerRadius = 25
+//        shareButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+//        shareButton.addTarget(self, action: #selector(shareButtonTapped), for: .touchUpInside)
         
         // Start button
         startButton.setTitle("START", for: .normal)
-        startButton.backgroundColor = UIColor.systemBlue
+        startButton.backgroundColor = UIColor.goatBlue
         startButton.tintColor = .white
-        startButton.layer.cornerRadius = 25
+        startButton.layer.cornerRadius = 22
         startButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
         startButton.addTarget(self, action: #selector(startButtonTapped), for: .touchUpInside)
         
-        let buttonStackView = UIStackView(arrangedSubviews: [shareButton, startButton])
+        let buttonStackView = UIStackView(arrangedSubviews: [startButton])
         buttonStackView.axis = .vertical
         buttonStackView.spacing = 12
         buttonStackView.distribution = .fillEqually
@@ -145,9 +145,9 @@ class ExercisePreviewView: UIView {
             buttonStackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
             buttonStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
             buttonStackView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -20), // Use safeArea to ensure proper positioning
-            buttonStackView.heightAnchor.constraint(equalToConstant: 100),
+          //  buttonStackView.heightAnchor.constraint(equalToConstant: 100),
             
-            shareButton.heightAnchor.constraint(equalToConstant: 44),
+//            shareButton.heightAnchor.constraint(equalToConstant: 44),
             startButton.heightAnchor.constraint(equalToConstant: 44)
         ])
     }

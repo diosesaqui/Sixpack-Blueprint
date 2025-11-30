@@ -162,7 +162,7 @@ class SettingsViewController: UITableViewController, SettingsDisplayLogic {
         switch item {
         case .about: routeToAboutScene()
 //        case .thirtyDayChallenge: routeToChallenge()
-//        case .programOverview: routeToProgramOverview()
+        case .programOverview: routeToProgramOverview()
         case .notifications: routeToNotificationsScene()
         case .review: leaveAReview()
         case .donation: sendADonation()

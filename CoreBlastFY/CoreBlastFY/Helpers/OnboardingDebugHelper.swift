@@ -69,7 +69,7 @@ class OnboardingDebugHelper {
     static func addDebugButtons(to viewController: UIViewController) {
         let statusButton = UIButton(type: .system)
         statusButton.setTitle("Onboarding Status", for: .normal)
-        statusButton.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.8)
+        statusButton.backgroundColor = UIColor.goatBlue.withAlphaComponent(0.8)
         statusButton.setTitleColor(.white, for: .normal)
         statusButton.layer.cornerRadius = 8
         statusButton.addTarget(self, action: #selector(statusButtonTapped), for: .touchUpInside)
