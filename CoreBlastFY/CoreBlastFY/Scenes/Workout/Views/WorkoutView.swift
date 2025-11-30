@@ -259,7 +259,8 @@ class WorkoutView: UIView {
         exerciseNameButton.setTitle(nextExercise, for: .normal)
         
         let videoURL = workoutViewModel.workoutDetails.exercises[iteration].videoURL
-        loadingView = LoadingView(frame: .zero, nextExercise: nextExercise, secondsOfRest: secondsOfRest, videoURL: videoURL)
+        // Use 3 seconds for exercise transition countdown, regardless of rest period
+        loadingView = LoadingView(frame: .zero, nextExercise: nextExercise, secondsOfRest: 3, videoURL: videoURL)
         
         UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseIn, animations: { [weak self] in
             if let loadingView = self?.loadingView {

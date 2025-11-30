@@ -27,7 +27,9 @@ class ModernWorkoutView: UIView {
     private let progressLabel = UILabel() // "1 of 8"
     private let exerciseNameLabel = UILabel()
     private let timeLabel = UILabel()
-    private let countdownLabel = UILabel() // "Get Ready: 3"
+    private let countdownLabel = UILabel() // "3"
+    private let getReadyLabel = UILabel() // "GET READY"
+    private let pulseView = UIView() // Background pulse animation
     private let exerciseVideoPlayer = ExerciseVideoPlayerView()
     private let progressIndicator = CircularProgressView()
     
@@ -160,13 +162,37 @@ class ModernWorkoutView: UIView {
         pauseLabel.textAlignment = .center
         pauseLabel.isHidden = true
         
-        // Countdown label
-        countdownLabel.text = "Get Ready: 3"
-        countdownLabel.font = UIFont.boldSystemFont(ofSize: 48)
+        // Hide GET READY label - we only want numbers
+        getReadyLabel.isHidden = true
+        
+        // Countdown label - enhanced design
+        countdownLabel.text = "3"
+        countdownLabel.font = UIFont.systemFont(ofSize: UIDevice.isIpad ? 180 : 140, weight: .black)
         countdownLabel.textColor = .white
         countdownLabel.textAlignment = .center
+        countdownLabel.layer.shadowColor = UIColor.goatBlue.cgColor
+        countdownLabel.layer.shadowOffset = CGSize(width: 0, height: 0)
+        countdownLabel.layer.shadowRadius = 20
+        countdownLabel.layer.shadowOpacity = 0.8
         countdownLabel.isHidden = false
         
+        // Pulse view setup
+        pulseView.backgroundColor = UIColor.goatBlue.withAlphaComponent(0.1)
+        pulseView.layer.cornerRadius = UIDevice.isIpad ? 150 : 120
+        pulseView.alpha = 0.2
+        
+        // Create continuous subtle pulse
+        let pulseAnimation = CABasicAnimation(keyPath: "transform.scale")
+        pulseAnimation.duration = 1.5
+        pulseAnimation.fromValue = 1.0
+        pulseAnimation.toValue = 1.1
+        pulseAnimation.autoreverses = true
+        pulseAnimation.repeatCount = .infinity
+        pulseAnimation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        pulseView.layer.add(pulseAnimation, forKey: "pulse")
+        
+        addSubview(pulseView)
+        addSubview(getReadyLabel)
         addSubview(timeLabel)
         addSubview(pauseLabel)
         addSubview(countdownLabel)
@@ -245,7 +271,9 @@ class ModernWorkoutView: UIView {
         exerciseNameLabel.translatesAutoresizingMaskIntoConstraints = false
         timeLabel.translatesAutoresizingMaskIntoConstraints = false
         pauseLabel.translatesAutoresizingMaskIntoConstraints = false
+        getReadyLabel.translatesAutoresizingMaskIntoConstraints = false
         countdownLabel.translatesAutoresizingMaskIntoConstraints = false
+        pulseView.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             // Progress indicator (circular background) - bigger and higher
@@ -278,9 +306,17 @@ class ModernWorkoutView: UIView {
             pauseLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
             pauseLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
             
-            // Countdown label
-            countdownLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
-            countdownLabel.centerYAnchor.constraint(equalTo: centerYAnchor)
+            // Pulse view constraints - centered in video view area
+            pulseView.centerXAnchor.constraint(equalTo: exerciseVideoPlayer.centerXAnchor),
+            pulseView.centerYAnchor.constraint(equalTo: exerciseVideoPlayer.centerYAnchor),
+            pulseView.widthAnchor.constraint(equalToConstant: UIDevice.isIpad ? 300 : 240),
+            pulseView.heightAnchor.constraint(equalToConstant: UIDevice.isIpad ? 300 : 240),
+            
+            // Countdown label - centered in video view area
+            countdownLabel.centerXAnchor.constraint(equalTo: exerciseVideoPlayer.centerXAnchor),
+            countdownLabel.centerYAnchor.constraint(equalTo: exerciseVideoPlayer.centerYAnchor),
+            countdownLabel.leadingAnchor.constraint(equalTo: exerciseVideoPlayer.leadingAnchor, constant: 20),
+            countdownLabel.trailingAnchor.constraint(equalTo: exerciseVideoPlayer.trailingAnchor, constant: -20)
         ])
     }
     
@@ -294,6 +330,13 @@ class ModernWorkoutView: UIView {
         timeLabel.isHidden = true
         exerciseNameLabel.alpha = 0.3
         progressIndicator.alpha = 0.3
+        
+        // Show countdown UI with entrance animation
+        countdownLabel.alpha = 0
+        
+        UIView.animate(withDuration: 0.6, delay: 0.1, options: [.curveEaseOut], animations: { [weak self] in
+            self?.countdownLabel.alpha = 1.0
+        })
         
         // Disable buttons during countdown
         previousButton.isEnabled = false
@@ -339,8 +382,18 @@ class ModernWorkoutView: UIView {
     private func updateCountdownDisplay() {
         let seconds = Int(countdownTime)
         if seconds > 0 {
-            countdownLabel.text = "Get Ready: \(seconds)"
-            countdownLabel.textColor = .white
+            countdownLabel.text = "\(seconds)"
+            
+            // Add pulse animation for countdown
+            UIView.animate(withDuration: 0.2, animations: { [weak self] in
+                self?.countdownLabel.transform = CGAffineTransform(scaleX: 1.3, y: 1.3)
+                self?.pulseView.alpha = 0.8
+            }) { [weak self] _ in
+                UIView.animate(withDuration: 0.3) {
+                    self?.countdownLabel.transform = .identity
+                    self?.pulseView.alpha = 0.2
+                }
+            }
         } else {
             countdownLabel.text = "GO!"
             countdownLabel.textColor = .white
@@ -350,11 +403,21 @@ class ModernWorkoutView: UIView {
     private func endCountdown() {
         isCountdownPhase = false
         
-        // Show normal UI
-        countdownLabel.isHidden = true
-        timeLabel.isHidden = false
-        exerciseNameLabel.alpha = 1.0
-        progressIndicator.alpha = 1.0
+        // Hide countdown UI with animation
+        UIView.animate(withDuration: 0.4, animations: { [weak self] in
+            self?.countdownLabel.alpha = 0
+            self?.pulseView.alpha = 0
+        }) { [weak self] _ in
+            self?.countdownLabel.isHidden = true
+            self?.pulseView.isHidden = true
+        }
+        
+        // Show normal UI with animation
+        UIView.animate(withDuration: 0.6, delay: 0.2, options: [.curveEaseOut], animations: { [weak self] in
+            self?.timeLabel.isHidden = false
+            self?.exerciseNameLabel.alpha = 1.0
+            self?.progressIndicator.alpha = 1.0
+        })
         
         // Enable buttons
         previousButton.isEnabled = true
@@ -408,16 +471,12 @@ class ModernWorkoutView: UIView {
         
         // Check if we've completed all exercises in current set
         if currentExercise < exercises.count - 1 {
-            // Move to next exercise in same set (no rest between exercises)
+            // Move to next exercise in same set with 3-second countdown
             currentExercise += 1
             remainingTime = exerciseDuration
-            updateExerciseDisplay()
-            updateProgressIndicator()
             
-            // Start playing new exercise video if workout is running
-            if timerIsRunning && !isCountdownPhase {
-                exerciseVideoPlayer.play()
-            }
+            // Show 3-second countdown before next exercise
+            showCountdownForNextExercise()
         } else {
             // Completed all exercises in current set
             if currentSet < numberOfSets {
@@ -449,13 +508,42 @@ class ModernWorkoutView: UIView {
         currentExercise = 0
         remainingTime = exerciseDuration
         
+        // Show 3-second countdown before starting new set
+        showCountdownForNextExercise()
+    }
+    
+    private func showCountdownForNextExercise() {
+        // Pause the main timer
+        workoutTimer.invalidate()
+        timerIsRunning = false
+        
+        // Reset countdown
+        isCountdownPhase = true
+        countdownTime = 3
+        
+        // Update display to show upcoming exercise
         updateExerciseDisplay()
         updateProgressIndicator()
         
-        // Start playing new exercise video if workout is running (and not in countdown)
-        if timerIsRunning && !isCountdownPhase {
-            exerciseVideoPlayer.play()
-        }
+        // Hide normal UI and show countdown UI
+        timeLabel.isHidden = true
+        exerciseNameLabel.alpha = 0.3
+        progressIndicator.alpha = 0.3
+        
+        // Show countdown elements with animation
+        countdownLabel.isHidden = false
+        pulseView.isHidden = false
+        
+        countdownLabel.alpha = 0
+        pulseView.alpha = 0.2
+        
+        UIView.animate(withDuration: 0.6, delay: 0.1, options: [.curveEaseOut], animations: { [weak self] in
+            self?.countdownLabel.alpha = 1.0
+        })
+        
+        // Start countdown timer
+        startTimer()
+        updateCountdownDisplay()
     }
     
     // MARK: - Control Actions
