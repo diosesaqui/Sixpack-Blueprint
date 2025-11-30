@@ -51,9 +51,13 @@ class ProgressionCollectionViewController: UICollectionViewController, UIImagePi
        
         
         if ProgressionPicController.shared.noProgressionPics {
-            cameraBarButtonItem.bounce(duration: 2.0)
+            // Start the sophisticated camera attention animation
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.cameraBarButtonItem.cameraAttentionAnimation()
+            }
             self.collectionView?.isHidden = true
             setupProgressionView()
+            addCameraPrompt()
             view.setNeedsLayout()
         }
         
@@ -64,6 +68,12 @@ class ProgressionCollectionViewController: UICollectionViewController, UIImagePi
         }
     }
     
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        // Stop camera animations when leaving the screen
+        cameraBarButtonItem.stopCameraAttentionAnimation()
+    }
+    
 
     
     //MARK: - Methods
@@ -71,15 +81,21 @@ class ProgressionCollectionViewController: UICollectionViewController, UIImagePi
     let imagePicker = UIImagePickerController()
     
     @objc func takePicture() {
-       
-        //TO DO: FIX memory leaks
-      
-        if UIImagePickerController.isSourceTypeAvailable(.camera) {
-            imagePicker.sourceType = .camera
-            self.present(imagePicker, animated: true, completion: nil)
-        } else {
-            imagePicker.sourceType = .photoLibrary
-            self.present(imagePicker, animated: true, completion: nil)
+        // Stop the attention animation and play shutter animation
+        cameraBarButtonItem.stopCameraAttentionAnimation()
+        
+        cameraBarButtonItem.cameraShutterAnimation { [weak self] in
+            guard let self = self else { return }
+            
+            //TO DO: FIX memory leaks
+            
+            if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                self.imagePicker.sourceType = .camera
+                self.present(self.imagePicker, animated: true, completion: nil)
+            } else {
+                self.imagePicker.sourceType = .photoLibrary
+                self.present(self.imagePicker, animated: true, completion: nil)
+            }
         }
     }
     
@@ -169,21 +185,25 @@ class ProgressionCollectionViewController: UICollectionViewController, UIImagePi
         view.layer.addSublayer(saturateLayer)
     }
     
-    private lazy var pgLabel: UILabel = {
+    private lazy var titleLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = """
-        \nGo ahead and take your first Progression Pic!
-        \nWe'll do weekly progression pics to stay motivated and on track to reach your goals!
-"""
-        label.font = UIFont.makeTitleFontDB(size: UIDevice.isIpad ? 34 : 24)
-        label.adjustsFontSizeToFitWidth = true
-        label.minimumScaleFactor = CGFloat(exactly: NSNumber(floatLiteral: 15.0))!
+        label.text = "Track Your\nTransformation"
+        label.font = UIFont.systemFont(ofSize: UIDevice.isIpad ? 40 : 32, weight: .bold)
         label.numberOfLines = 0
         label.textAlignment = .center
-        label.clipsToBounds = true
         label.textColor = .white
-        label.textAlignment = .left
+        return label
+    }()
+    
+    private lazy var subtitleLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "Take your first progress photo\nto begin your fitness journey."
+        label.font = UIFont.systemFont(ofSize: UIDevice.isIpad ? 20 : 17, weight: .regular)
+        label.numberOfLines = 0
+        label.textAlignment = .center
+        label.textColor = UIColor.white.withAlphaComponent(0.7)
         return label
     }()
     
@@ -195,16 +215,53 @@ class ProgressionCollectionViewController: UICollectionViewController, UIImagePi
         progressionView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
         progressionView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
         
-        progressionView.addSubview(pgLabel)
+        progressionView.addSubview(titleLabel)
+        progressionView.addSubview(subtitleLabel)
         setupLabelConstraints()
     }
     
     private func setupLabelConstraints() {
-        pgLabel.centerYAnchor.constraint(equalTo: progressionView.centerYAnchor).isActive = true
-        pgLabel.leadingAnchor.constraint(equalTo: progressionView.leadingAnchor, constant: 24).isActive = true
-        pgLabel.centerXAnchor.constraint(equalTo: progressionView.centerXAnchor).isActive = true
-        pgLabel.trailingAnchor.constraint(equalTo: progressionView.trailingAnchor, constant: -24).isActive = true
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         
+        NSLayoutConstraint.activate([
+            // Title Label
+            titleLabel.centerXAnchor.constraint(equalTo: progressionView.centerXAnchor),
+            titleLabel.centerYAnchor.constraint(equalTo: progressionView.centerYAnchor, constant: -40),
+            titleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: progressionView.leadingAnchor, constant: 40),
+            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: progressionView.trailingAnchor, constant: -40),
+            
+            // Subtitle Label
+            subtitleLabel.centerXAnchor.constraint(equalTo: progressionView.centerXAnchor),
+            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 24),
+            subtitleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: progressionView.leadingAnchor, constant: 40),
+            subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: progressionView.trailingAnchor, constant: -40)
+        ])
+    }
+    
+    private lazy var cameraPromptLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "Tap  to get started"
+        label.font = UIFont.systemFont(ofSize: 15, weight: .medium)
+        label.textColor = UIColor.goatBlue
+        label.textAlignment = .center
+        label.alpha = 0.9
+        return label
+    }()
+    
+    private func addCameraPrompt() {
+        progressionView.addSubview(cameraPromptLabel)
+        
+        NSLayoutConstraint.activate([
+            cameraPromptLabel.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 48),
+            cameraPromptLabel.centerXAnchor.constraint(equalTo: progressionView.centerXAnchor)
+        ])
+        
+        // Add subtle pulsing animation
+        UIView.animate(withDuration: 2.0, delay: 1.0, options: [.repeat, .autoreverse, .allowUserInteraction], animations: {
+            self.cameraPromptLabel.alpha = 0.4
+        })
     }
     
     

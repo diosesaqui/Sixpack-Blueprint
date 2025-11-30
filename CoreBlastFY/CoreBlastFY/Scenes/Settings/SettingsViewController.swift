@@ -211,8 +211,8 @@ extension SettingsViewController: MFMailComposeViewControllerDelegate {
         
         let mailComposer = MFMailComposeViewController()
         mailComposer.mailComposeDelegate = self
-        mailComposer.setToRecipients(["foreveryoungco@icloud.com"])
-        mailComposer.setSubject("Request a Feature? / Have Feedback? / Report a Bug?")
+        mailComposer.setToRecipients(["speaklife@diosesaqui.com"])
+        mailComposer.setSubject("Request a Feature? / Have Feedback?")
         
         if !MFMailComposeViewController.canSendMail() {
             AlertController.createAlert(errorMessage: "Seems like your device can't send emails.", viewController: self)

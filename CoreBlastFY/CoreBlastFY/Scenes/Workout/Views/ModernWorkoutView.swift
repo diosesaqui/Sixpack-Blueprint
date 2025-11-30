@@ -11,8 +11,8 @@ import UIKit
 class ModernWorkoutView: UIView {
     
     // MARK: - Properties
-    private var setNumber = 1
-    private var iteration = 0
+    private var currentSet = 1
+    private var currentExercise = 0
     private var workoutDuration: TimeInterval
     private var remainingTime: TimeInterval = 30 // Initial exercise time
     var timerIsRunning = false
@@ -31,6 +31,7 @@ class ModernWorkoutView: UIView {
     private let exerciseVideoPlayer = ExerciseVideoPlayerView()
     private let progressIndicator = CircularProgressView()
     
+    private let exitButton = UIButton(type: .system)
     private let previousButton = UIButton(type: .system)
     private let playPauseButton = UIButton(type: .system)
     private let nextButton = UIButton(type: .system)
@@ -73,11 +74,30 @@ class ModernWorkoutView: UIView {
     
     // MARK: - UI Setup
     private func setupUI() {
+        setupExitButton()
         setupProgressIndicator()
         setupTopSection()
         setupCenterSection()
         setupBottomSection()
         setupConstraints()
+    }
+    
+    private func setupExitButton() {
+        exitButton.setImage(UIImage(systemName: "xmark"), for: .normal)
+        exitButton.tintColor = .white
+        exitButton.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+        exitButton.layer.cornerRadius = 20
+        exitButton.addTarget(self, action: #selector(exitButtonTapped), for: .touchUpInside)
+        
+        addSubview(exitButton)
+        exitButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            exitButton.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 10),
+            exitButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            exitButton.widthAnchor.constraint(equalToConstant: 40),
+            exitButton.heightAnchor.constraint(equalToConstant: 40)
+        ])
     }
     
     private func setupProgressIndicator() {
@@ -96,7 +116,7 @@ class ModernWorkoutView: UIView {
     
     private func setupTopSection() {
         // Progress label (1 of 8)
-        progressLabel.text = "\(iteration + 1) of \(exercises.count)"
+        progressLabel.text = "Set \(currentSet) • \(currentExercise + 1) of \(exercises.count)"
         progressLabel.font = UIFont.systemFont(ofSize: 20, weight: .bold)
         progressLabel.textColor = .white
         progressLabel.textAlignment = .center
@@ -230,7 +250,7 @@ class ModernWorkoutView: UIView {
         NSLayoutConstraint.activate([
             // Progress indicator (circular background) - bigger and higher
             progressIndicator.centerXAnchor.constraint(equalTo: centerXAnchor),
-            progressIndicator.centerYAnchor.constraint(equalTo: centerYAnchor, constant: -80),
+            progressIndicator.centerYAnchor.constraint(equalTo: centerYAnchor, constant: -120),
             progressIndicator.widthAnchor.constraint(equalToConstant: 400),
             progressIndicator.heightAnchor.constraint(equalToConstant: 400),
             
@@ -240,7 +260,7 @@ class ModernWorkoutView: UIView {
             
             // Exercise video player - bigger and higher
             exerciseVideoPlayer.centerXAnchor.constraint(equalTo: centerXAnchor),
-            exerciseVideoPlayer.centerYAnchor.constraint(equalTo: centerYAnchor, constant: -80),
+            exerciseVideoPlayer.centerYAnchor.constraint(equalTo: centerYAnchor, constant: -120),
             exerciseVideoPlayer.widthAnchor.constraint(equalToConstant: 380),
             exerciseVideoPlayer.heightAnchor.constraint(equalToConstant: 380),
             
@@ -285,12 +305,12 @@ class ModernWorkoutView: UIView {
     }
     
     private func updateExerciseDisplay() {
-        let currentExercise = exercises[iteration]
-        progressLabel.text = "\(iteration + 1) of \(exercises.count)"
-        exerciseNameLabel.text = currentExercise.name.capitalized
+        let exercise = exercises[currentExercise]
+        progressLabel.text = "Set \(currentSet) • \(currentExercise + 1) of \(exercises.count)"
+        exerciseNameLabel.text = exercise.name.capitalized
         
         // Configure video player with current exercise
-        exerciseVideoPlayer.configure(with: currentExercise)
+        exerciseVideoPlayer.configure(with: exercise)
     }
     
     
@@ -383,34 +403,52 @@ class ModernWorkoutView: UIView {
     }
     
     private func advanceToNextExercise() {
-        if iteration < exercises.count - 1 {
-            // Stop current video before advancing
-            exerciseVideoPlayer.stop()
-            
-            // Start rest period before next exercise
-            isRestPeriod = true
-            remainingTime = TimeInterval(secondsOfRest)
-            
-            // Update display for rest period
-            exerciseNameLabel.text = "Rest"
-            let minutes = secondsOfRest / 60
-            let seconds = secondsOfRest % 60
-            timeLabel.text = String(format: "%d:%02d", minutes, seconds)
+        // Stop current video before advancing
+        exerciseVideoPlayer.stop()
+        
+        // Check if we've completed all exercises in current set
+        if currentExercise < exercises.count - 1 {
+            // Move to next exercise in same set (no rest between exercises)
+            currentExercise += 1
+            remainingTime = exerciseDuration
+            updateExerciseDisplay()
             updateProgressIndicator()
             
-            // Show rest image instead of stale exercise video
-            exerciseVideoPlayer.showRestImage()
-            
+            // Start playing new exercise video if workout is running
+            if timerIsRunning && !isCountdownPhase {
+                exerciseVideoPlayer.play()
+            }
         } else {
-            // Workout complete
-            workoutFinished()
+            // Completed all exercises in current set
+            if currentSet < numberOfSets {
+                // Start rest period before next set
+                isRestPeriod = true
+                remainingTime = TimeInterval(secondsOfRest)
+                
+                // Update display for rest period
+                exerciseNameLabel.text = "Rest - Set \(currentSet) Complete!"
+                let minutes = secondsOfRest / 60
+                let seconds = secondsOfRest % 60
+                timeLabel.text = String(format: "%d:%02d", minutes, seconds)
+                updateProgressIndicator()
+                
+                // Show rest image instead of stale exercise video
+                exerciseVideoPlayer.showRestImage()
+            } else {
+                // All sets complete - workout finished
+                workoutFinished()
+            }
         }
     }
     
     private func startNextExercise() {
         isRestPeriod = false
-        iteration += 1
+        
+        // Start next set from first exercise
+        currentSet += 1
+        currentExercise = 0
         remainingTime = exerciseDuration
+        
         updateExerciseDisplay()
         updateProgressIndicator()
         
@@ -421,6 +459,16 @@ class ModernWorkoutView: UIView {
     }
     
     // MARK: - Control Actions
+    @objc private func exitButtonTapped() {
+        workoutTimer.invalidate()
+        timerIsRunning = false
+        exerciseVideoPlayer.stop()
+        exerciseVideoPlayer.cleanupPlayer()
+        
+        // Go back to the main app flow instead of just the previous screen
+        rootViewController?.navigationController?.popToRootViewController(animated: true)
+    }
+    
     @objc private func playPauseButtonTapped() {
         // Don't allow pause/play during countdown
         if isCountdownPhase {
@@ -446,11 +494,16 @@ class ModernWorkoutView: UIView {
             return
         }
         
-        if iteration > 0 {
+        // Don't allow going back during rest periods
+        if isRestPeriod {
+            return
+        }
+        
+        if currentExercise > 0 {
             // Stop current video before going back
             exerciseVideoPlayer.stop()
             
-            iteration -= 1
+            currentExercise -= 1
             remainingTime = exerciseDuration
             updateExerciseDisplay()
             updateProgressIndicator()
@@ -468,7 +521,13 @@ class ModernWorkoutView: UIView {
             return
         }
         
-        advanceToNextExercise()
+        if isRestPeriod {
+            // Skip rest period and go directly to next exercise
+            startNextExercise()
+        } else {
+            // Normal advance to next exercise or rest
+            advanceToNextExercise()
+        }
     }
     
     // MARK: - Public Methods
@@ -476,9 +535,18 @@ class ModernWorkoutView: UIView {
         workoutTimer.invalidate()
         timerIsRunning = false
         playPauseButton.setImage(UIImage(systemName: "play.fill"), for: .normal)
+        
+        // Show pause overlay without changing layout
         pauseLabel.isHidden = false
         exerciseVideoPlayer.pause()
         exerciseVideoPlayer.alpha = 0.5
+        
+        // Dim other elements but keep layout intact
+        progressIndicator.alpha = 0.5
+        exerciseNameLabel.alpha = 0.5
+        timeLabel.alpha = 0.5
+        previousButton.alpha = 0.5
+        nextButton.alpha = 0.5
     }
     
     func resumeWorkout() {
@@ -486,6 +554,13 @@ class ModernWorkoutView: UIView {
         pauseLabel.isHidden = true
         exerciseVideoPlayer.play()
         exerciseVideoPlayer.alpha = 1.0
+        
+        // Restore normal opacity
+        progressIndicator.alpha = 1.0
+        exerciseNameLabel.alpha = 1.0
+        timeLabel.alpha = 1.0
+        previousButton.alpha = 1.0
+        nextButton.alpha = 1.0
     }
     
     private func workoutFinished() {
