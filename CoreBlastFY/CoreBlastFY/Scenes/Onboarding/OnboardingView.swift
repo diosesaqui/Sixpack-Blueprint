@@ -96,7 +96,7 @@ struct WelcomeView: View {
                 }
                 .padding(.bottom, 40)
                 
-                Text("Welcome to Sixpack Blueprint")
+                Text("Welcome to Sixpack Blueprint - Abs Workout")
                     .font(.system(size: 32, weight: .bold))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
@@ -482,7 +482,7 @@ struct ReviewPromptView: View {
                 Spacer()
                 
                 VStack(spacing: 16) {
-                    Button("HELP US GROW - LEAVE REVIEW") {
+                    Button("HELP US GROW") {
                         // Request review using StoreKit
                         if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
                             SKStoreReviewController.requestReview(in: scene)

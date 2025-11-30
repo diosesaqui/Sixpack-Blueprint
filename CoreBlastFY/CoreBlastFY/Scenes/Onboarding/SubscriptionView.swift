@@ -137,9 +137,9 @@ struct SubscriptionView: View {
                     price: monthlyPrice.formatted(.currency(code: product.priceFormatStyle.currencyCode)) + " / mo",
                     billingPeriod: product.displayPrice,
                     savings: "Save 65%",
-                    cta: "START FREE TRIAL",
-                    ctaTitle: "7 day free trial then \(product.displayPrice) annually. Cancel Anytime.",
-                    freeTrial: true
+                    cta: "SUBSCRIBE",
+                    ctaTitle: "\(product.displayPrice) billed annually. Cancel Anytime.",
+                    freeTrial: false
                 )
             case InAppIds.premiumMonthly:
                 option = SubscriptionOption(
@@ -160,8 +160,8 @@ struct SubscriptionView: View {
         // Fallback to hardcoded options if products aren't loaded yet
         if dynamicOptions.isEmpty {
             return [
-                // Yearly first - most popular and best value with free trial
-                SubscriptionOption(id: InAppIds.premiumAnnual, title: "Yearly", price: "$1.67 / mo", billingPeriod: "$19.99", savings: "Save 65%", cta: "START FREE TRIAL", ctaTitle: "7 day free trial then $19.99 annually. Cancel Anytime.", freeTrial: true),
+                // Yearly first - most popular and best value
+                SubscriptionOption(id: InAppIds.premiumAnnual, title: "Yearly", price: "$1.67 / mo", billingPeriod: "$19.99", savings: "Save 65%", cta: "SUBSCRIBE", ctaTitle: "$19.99 billed annually. Cancel Anytime.", freeTrial: false),
                 SubscriptionOption(id: InAppIds.premiumMonthly, title: "Monthly", price: "$4.99 / mo", billingPeriod: "per month", savings: nil, cta: "SUBSCRIBE", ctaTitle: "$4.99 monthly. Cancel Anytime.")
             ]
         }
@@ -245,7 +245,6 @@ struct SubscriptionView: View {
             // Top benefits bar (like status bar area)
             VStack(spacing: 4) {
                 HStack {
-                    Spacer()
                     Button(action: {
                         // Disabled one-time offer for now
                         // AnalyticsManager.shared.trackOneTimeOfferShown()
@@ -258,9 +257,10 @@ struct SubscriptionView: View {
                             .font(.system(size: 18, weight: .medium))
                             .foregroundColor(.white)
                             .frame(width: 30, height: 30)
-                            .background(Color.black.opacity(0.3))
+                            .background(Color.white.opacity(0.15))
                             .clipShape(Circle())
                     }
+                    Spacer()
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 10)
@@ -276,7 +276,7 @@ struct SubscriptionView: View {
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 30)
                         
-                        Text("Only $1.67 per month billed yearly.\nThat's 50x cheaper than a trainer.")
+                        Text("Only $2.50 per month billed yearly.\nThat's 50x cheaper than a trainer.")
                             .font(.system(size: 18))
                             .foregroundColor(.white.opacity(0.9))
                             .multilineTextAlignment(.center)
@@ -361,9 +361,14 @@ struct SubscriptionView: View {
                         .opacity(0.9)
                 }
                 .padding(.top, 20)
-                
-                // Pricing Options
-                VStack(spacing: 12) {
+                .padding(.bottom, 40) // Extra padding for sticky bottom content
+                }
+            }
+            
+            // Sticky bottom section with pricing options - compact
+            VStack(spacing: 0) {
+                // Pricing Options - much more compact
+                VStack(spacing: 10) {
                     ForEach(options.indices, id: \.self) { index in
                         let option = options[index]
                         let isPopular = index == 0 // First option (Yearly) is most popular
@@ -373,70 +378,45 @@ struct SubscriptionView: View {
                             isSelected: selectedOption?.id == option.id,
                             isPopular: isPopular
                         ) {
+                            // Directly start purchase process when option is tapped
                             selectedOption = option
                             
-                            // Track subscription option selection
+                            // Track subscription option selection and payment started
                             AnalyticsManager.shared.trackSubscriptionOptionSelected(
                                 productId: option.id,
                                 isYearly: option.id == InAppIds.premiumAnnual
                             )
+                            AnalyticsManager.shared.trackSubscriptionPaymentStarted(productId: option.id)
+                            viewModel.purchase(productID: option.id)
                         }
                     }
                 }
-                .padding(.top, 30)
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 18)
+                .padding(.top, 12)
                 
-                // Subscribe Button - dynamic text based on selected option
-                Button(action: {
-                    if let selectedOption = selectedOption {
-                        // Track payment started
-                        AnalyticsManager.shared.trackSubscriptionPaymentStarted(productId: selectedOption.id)
-                        viewModel.purchase(productID: selectedOption.id)
-                    }
-                }) {
-                    Text(selectedOption?.cta ?? "START FREE TRIAL")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(.black)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(Color.cyan)
-                        .cornerRadius(12)
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 20)
-                .disabled(viewModel.isPurchasing)
-                
-                // Terms - show terms based on selected option
-                if let selectedOption = selectedOption {
-                    Text(selectedOption.ctaTitle)
-                        .font(.system(size: 14))
-                        .foregroundColor(.white)
-                        .opacity(0.8)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 20)
-                        .padding(.top, 12)
-                } else {
-                    Text("7 day free trial then $19.99 annually. Cancel Anytime.")
-                        .font(.system(size: 14))
-                        .foregroundColor(.white)
-                        .opacity(0.8)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 20)
-                        .padding(.top, 12)
-                }
-                
-                // Restore Purchases
+                // Restore Purchases - compact
                 Button("Restore Purchases") {
                     viewModel.restore()
                 }
-                .font(.system(size: 16))
+                .font(.system(size: 14))
                 .foregroundColor(.white)
                 .opacity(0.7)
-                .padding(.top, 20)
-                .padding(.bottom, 40)
+                .padding(.top, 12)
+                .padding(.bottom, 24)
                 .disabled(viewModel.isPurchasing)
-                }
             }
+            .background(
+                // Add subtle gradient overlay to separate sticky section
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color.clear,
+                        Color.black.opacity(0.1)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+            .shadow(color: Color.black.opacity(0.6), radius: 12, x: 0, y: -6)
         }
     }
 }
@@ -490,7 +470,7 @@ struct CoreBenefitRow: View {
             ZStack {
                 Circle()
                     .fill(Color.white.opacity(0.2))
-                    .frame(width: 32, height: 32)
+                    .frame(width: 24, height: 24)
                 
                 Image(systemName: "checkmark")
                     .font(.system(size: 16, weight: .bold))
@@ -498,7 +478,7 @@ struct CoreBenefitRow: View {
             }
             
             Text(text)
-                .font(.system(size: 18))
+                .font(.system(size: 14))
                 .foregroundColor(.white)
             
             Spacer()
@@ -590,57 +570,60 @@ struct PricingOptionView: View {
     
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: 8)
                 .foregroundColor(isSelected ? Color.white.opacity(0.2) : Color.white.opacity(0.1))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(isSelected ? Color.white : Color.clear, lineWidth: 2)
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(isSelected ? Color.white : Color.clear, lineWidth: 1.5)
                 )
             
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 12) {
+                // Left side - title and billing
+                VStack(alignment: .leading, spacing: 2) {
                     Text(option.title)
-                        .font(.system(size: 18, weight: .semibold))
+                        .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.white)
                     
                     if option.title == "Yearly" {
-                        HStack {
+                        HStack(spacing: 4) {
                             Text("$79.99")
-                                .font(.system(size: 14))
+                                .font(.system(size: 12))
                                 .strikethrough()
                                 .foregroundColor(.white.opacity(0.6))
                             Text(option.billingPeriod)
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(.white)
+                                .font(.system(size: 12))
+                                .foregroundColor(.white.opacity(0.8))
                         }
                     } else {
                         Text(option.billingPeriod)
-                            .font(.system(size: 14))
+                            .font(.system(size: 12))
                             .foregroundColor(.white.opacity(0.7))
                     }
                 }
                 
                 Spacer()
                 
-                VStack(alignment: .trailing, spacing: 4) {
+                // Right side - price and savings in single line
+                HStack(spacing: 8) {
                     Text(option.price)
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(.white)
                     
                     if let savings = option.savings {
                         Text(savings)
-                            .font(.system(size: 12, weight: .medium))
+                            .font(.system(size: 11, weight: .medium))
                             .foregroundColor(.green)
                     }
                     
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 14))
+                        .font(.system(size: 12))
                         .foregroundColor(.white.opacity(0.6))
                 }
             }
-            .padding(16)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 6)
             
-            // Most Popular Badge
+            // Most Popular Badge - tiny
             if isPopular {
                 VStack {
                     HStack {
@@ -648,16 +631,17 @@ struct PricingOptionView: View {
                         Text("Most Popular")
                             .font(.system(size: 12, weight: .medium))
                             .foregroundColor(.black)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 4)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 1)
                             .background(Color.white)
-                            .cornerRadius(12)
-                            .offset(x: -8, y: -12)
+                            .cornerRadius(6)
+                            .offset(x: -4, y: -6)
                     }
                     Spacer()
                 }
             }
         }
+        .frame(height: 56)
         .onTapGesture {
             onTap()
         }
