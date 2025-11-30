@@ -25,6 +25,8 @@
 		45BC74942EDAAFBC003AC964 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 45BC74932EDAAFBC003AC964 /* FirebaseAnalytics */; };
 		45BC74962EDAB3C7003AC964 /* OptimizedNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BC74952EDAB3C7003AC964 /* OptimizedNotifications.swift */; };
 		45BC74992EDBD292003AC964 /* DashboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BC74972EDBD292003AC964 /* DashboardViewController.swift */; };
+		45BC749B2EDC1885003AC964 /* WorkoutFeedbackManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BC749A2EDC1885003AC964 /* WorkoutFeedbackManager.swift */; };
+		45BC749D2EDC2885003AC964 /* WorkoutSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BC749C2EDC2885003AC964 /* WorkoutSettingsView.swift */; };
 		7A0116522471C8840070EB5F /* StoreObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0116512471C8840070EB5F /* StoreObserver.swift */; };
 		7A0116542471C8900070EB5F /* StoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0116532471C8900070EB5F /* StoreManager.swift */; };
 		7A04A1C42888CC990018FE38 /* Progression+SwiftUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A04A1C32888CC990018FE38 /* Progression+SwiftUI.swift */; };
@@ -222,6 +224,8 @@
 		45BC748F2EDAAD6F003AC964 /* AnalyticsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsManager.swift; sourceTree = "<group>"; };
 		45BC74952EDAB3C7003AC964 /* OptimizedNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptimizedNotifications.swift; sourceTree = "<group>"; };
 		45BC74972EDBD292003AC964 /* DashboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewController.swift; sourceTree = "<group>"; };
+		45BC749A2EDC1885003AC964 /* WorkoutFeedbackManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutFeedbackManager.swift; sourceTree = "<group>"; };
+		45BC749C2EDC2885003AC964 /* WorkoutSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutSettingsView.swift; sourceTree = "<group>"; };
 		7A0116512471C8840070EB5F /* StoreObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreObserver.swift; sourceTree = "<group>"; };
 		7A0116532471C8900070EB5F /* StoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreManager.swift; sourceTree = "<group>"; };
 		7A04A1C32888CC990018FE38 /* Progression+SwiftUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Progression+SwiftUI.swift"; sourceTree = "<group>"; };
@@ -611,6 +615,7 @@
 		7A8CBAD723E9122D00D0D6BD /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				45BC749A2EDC1885003AC964 /* WorkoutFeedbackManager.swift */,
 				7A0D677124804B9900A6E766 /* LoadingViewController.swift */,
 				7AC2C6942445486400B3BFC8 /* CustomDatePicker.swift */,
 				7A8CBB7723EFAF4D00D0D6BD /* UIView+Layout.swift */,
@@ -751,6 +756,7 @@
 				45BC74732EDA7DAD003AC964 /* ModernWorkoutView.swift */,
 				7A8CBB1023E912C700D0D6BD /* VideoView.swift */,
 				7A8CBB1123E912C700D0D6BD /* WorkoutView.swift */,
+				45BC749C2EDC2885003AC964 /* WorkoutSettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -1110,6 +1116,7 @@
 				7A8CBAD123E9122500D0D6BD /* PlayerLooper.swift in Sources */,
 				7A0D67702479C97F00A6E766 /* UIDevice+Extension.swift in Sources */,
 				7AC2C6C32449183C00B3BFC8 /* MealPlansRouter.swift in Sources */,
+				45BC749B2EDC1885003AC964 /* WorkoutFeedbackManager.swift in Sources */,
 				7A86DFB7247436A700F2FC35 /* ExerciseInteractor.swift in Sources */,
 				7AC2C6932445363700B3BFC8 /* NotificationsInteractor.swift in Sources */,
 				7A8CBB1823E912C700D0D6BD /* PreWorkoutModels.swift in Sources */,
@@ -1133,6 +1140,7 @@
 				7A8CBAE123E9122D00D0D6BD /* LocalNotifications.swift in Sources */,
 				7A8CBB3023EA6F6E00D0D6BD /* Notifications.swift in Sources */,
 				7A8CBB2B23E912C700D0D6BD /* WorkoutView.swift in Sources */,
+				45BC749D2EDC2885003AC964 /* WorkoutSettingsView.swift in Sources */,
 				7AC2C6DC244B8F1800B3BFC8 /* MealPlanDetailInteractor.swift in Sources */,
 				7AC36D2724562C5B002764F5 /* MealPlanData.swift in Sources */,
 				7A8CBAF123E912B100D0D6BD /* User.swift in Sources */,
@@ -1388,7 +1396,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 48;
+				CURRENT_PROJECT_VERSION = 55;
 				DEVELOPMENT_TEAM = 652R6A63L8;
 				INFOPLIST_FILE = CoreBlastFY/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Abs Workout: Six Pack Trainer";
@@ -1398,7 +1406,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0.11;
+				MARKETING_VERSION = 2.0.10;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Franchiz.CoreBlast;
 				PRODUCT_NAME = "Sixpack Blueprint";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1414,7 +1422,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 48;
+				CURRENT_PROJECT_VERSION = 55;
 				DEVELOPMENT_TEAM = 652R6A63L8;
 				INFOPLIST_FILE = CoreBlastFY/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Abs Workout: Six Pack Trainer";
@@ -1424,7 +1432,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0.11;
+				MARKETING_VERSION = 2.0.10;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Franchiz.CoreBlast;
 				PRODUCT_NAME = "Sixpack Blueprint";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";

@@ -6,6 +6,8 @@
 //
 
 import UIKit
+import AVFoundation
+import SwiftUI
 
 
 class ModernWorkoutView: UIView {
@@ -34,6 +36,7 @@ class ModernWorkoutView: UIView {
     private let progressIndicator = CircularProgressView()
     
     private let exitButton = UIButton(type: .system)
+    private let settingsButton = UIButton(type: .system)
     private let previousButton = UIButton(type: .system)
     private let playPauseButton = UIButton(type: .system)
     private let nextButton = UIButton(type: .system)
@@ -67,6 +70,10 @@ class ModernWorkoutView: UIView {
         backgroundColor = .black
         setupUI()
         configureInitialState()
+        
+        // Provide haptic and audio feedback for workout start
+        WorkoutFeedbackManager.shared.playWorkoutStartFeedback()
+        
         startTimer()
     }
     
@@ -77,6 +84,7 @@ class ModernWorkoutView: UIView {
     // MARK: - UI Setup
     private func setupUI() {
         setupExitButton()
+        setupSettingsButton()
         setupProgressIndicator()
         setupTopSection()
         setupCenterSection()
@@ -99,6 +107,24 @@ class ModernWorkoutView: UIView {
             exitButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
             exitButton.widthAnchor.constraint(equalToConstant: 40),
             exitButton.heightAnchor.constraint(equalToConstant: 40)
+        ])
+    }
+    
+    private func setupSettingsButton() {
+        settingsButton.setImage(UIImage(systemName: "ellipsis"), for: .normal)
+        settingsButton.tintColor = .white
+        settingsButton.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+        settingsButton.layer.cornerRadius = 20
+        settingsButton.addTarget(self, action: #selector(settingsButtonTapped), for: .touchUpInside)
+        
+        addSubview(settingsButton)
+        settingsButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            settingsButton.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 10),
+            settingsButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            settingsButton.widthAnchor.constraint(equalToConstant: 40),
+            settingsButton.heightAnchor.constraint(equalToConstant: 40)
         ])
     }
     
@@ -384,6 +410,9 @@ class ModernWorkoutView: UIView {
         if seconds > 0 {
             countdownLabel.text = "\(seconds)"
             
+            // Provide haptic and audio feedback for countdown
+            WorkoutFeedbackManager.shared.playCountdownFeedback(for: seconds)
+            
             // Add pulse animation for countdown
             UIView.animate(withDuration: 0.2, animations: { [weak self] in
                 self?.countdownLabel.transform = CGAffineTransform(scaleX: 1.3, y: 1.3)
@@ -484,6 +513,9 @@ class ModernWorkoutView: UIView {
                 isRestPeriod = true
                 remainingTime = TimeInterval(secondsOfRest)
                 
+                // Provide haptic and audio feedback for rest period
+                WorkoutFeedbackManager.shared.playRestPeriodFeedback()
+                
                 // Update display for rest period
                 exerciseNameLabel.text = "Rest - Set \(currentSet) Complete!"
                 let minutes = secondsOfRest / 60
@@ -521,6 +553,9 @@ class ModernWorkoutView: UIView {
         isCountdownPhase = true
         countdownTime = 3
         
+        // Provide haptic and audio feedback for exercise transition
+        WorkoutFeedbackManager.shared.playExerciseTransitionFeedback()
+        
         // Update display to show upcoming exercise
         updateExerciseDisplay()
         updateProgressIndicator()
@@ -555,6 +590,39 @@ class ModernWorkoutView: UIView {
         
         // Go back to the main app flow instead of just the previous screen
         rootViewController?.navigationController?.popToRootViewController(animated: true)
+    }
+    
+    @objc private func settingsButtonTapped() {
+        // Pause the workout while settings are open
+        if timerIsRunning {
+            pauseWorkout()
+        }
+        
+        // Create and present the settings view as a bottom sheet
+        var settingsShowing = true
+        let settingsView = WorkoutSettingsView(isPresented: Binding(
+            get: { settingsShowing },
+            set: { newValue in
+                settingsShowing = newValue
+                if !newValue {
+                    // Settings dismissed, nothing specific to do here
+                    // User can manually resume the workout
+                }
+            }
+        ))
+        
+        let hostingController = HostingViewController(view: settingsView)
+        hostingController.modalPresentationStyle = .pageSheet
+        
+        if #available(iOS 15.0, *) {
+            if let sheet = hostingController.sheetPresentationController {
+                sheet.detents = [.medium()]
+                sheet.prefersGrabberVisible = true
+                sheet.preferredCornerRadius = 20
+            }
+        }
+        
+        rootViewController?.present(hostingController, animated: true, completion: nil)
     }
     
     @objc private func playPauseButtonTapped() {
@@ -654,6 +722,9 @@ class ModernWorkoutView: UIView {
     private func workoutFinished() {
         workoutTimer.invalidate()
         timerIsRunning = false
+        
+        // Provide haptic and audio feedback for workout completion
+        WorkoutFeedbackManager.shared.playWorkoutCompleteFeedback()
         
         // Stop and cleanup video player
         exerciseVideoPlayer.stop()

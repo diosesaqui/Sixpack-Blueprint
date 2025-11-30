@@ -9,6 +9,7 @@
 import UIKit
 import SwiftUI
 import Combine
+import AVFoundation
 
 class ExerciseViewModel: ObservableObject {
     @Published var exercises: [String] = []
@@ -243,6 +244,9 @@ class WorkoutView: UIView {
     }
     
     private func workoutFinished() {
+        // Provide haptic and audio feedback for workout completion
+        WorkoutFeedbackManager.shared.playWorkoutCompleteFeedback()
+        
         UserManager.incrementPoint()
         UserManager.calculateLevel(totalPoints: UserAPI.user.totalPoints)
         videoView = nil
@@ -257,6 +261,9 @@ class WorkoutView: UIView {
         let tipsText = workoutViewModel.workoutDetails.exercises[iteration].tip.capitalized
         tipsLabel.text = tipsText
         exerciseNameButton.setTitle(nextExercise, for: .normal)
+        
+        // Provide haptic and audio feedback for exercise transition
+        WorkoutFeedbackManager.shared.playExerciseTransitionFeedback()
         
         let videoURL = workoutViewModel.workoutDetails.exercises[iteration].videoURL
         // Use 3 seconds for exercise transition countdown, regardless of rest period
@@ -403,6 +410,9 @@ class WorkoutView: UIView {
         
         pauseLabel.textColor = .white
         pauseLabel.isHidden = true
+        
+        // Provide haptic and audio feedback for workout start
+        WorkoutFeedbackManager.shared.playWorkoutStartFeedback()
         
         runTimer()
     }

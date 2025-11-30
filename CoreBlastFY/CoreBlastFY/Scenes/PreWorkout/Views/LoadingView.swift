@@ -11,10 +11,12 @@ import AVFoundation
 
 final class LoadingView: UIView {
     private var videoView: VideoView?
-    private var seconds = 5
+    private var seconds = 3 // Changed to 3 seconds for better UX
     private var timer = Timer()
     private var isRunning = false
     private var nextExerciseLabel = UILabel(text: "", font: UIDevice.isIpad ? UIFont.makeTitleFontDB(size: 36) : UIFont.makeTitleFontDB(size: 22), numberOfLines: 0)
+    private var getReadyLabel = UILabel()
+    private var pulseView = UIView() // For pulsing animation
     
     func runTimer(completion: @escaping(() -> Void)) {
         timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(updateLabel), userInfo: nil, repeats: true)
@@ -35,16 +37,35 @@ final class LoadingView: UIView {
             dismissedCompletion?()
         } else {
             countDownLabel.text = "\(seconds)"
+            
+            // Add pulse animation for countdown
+            UIView.animate(withDuration: 0.2, animations: { [weak self] in
+                self?.countDownLabel.transform = CGAffineTransform(scaleX: 1.3, y: 1.3)
+                self?.pulseView.alpha = 0.8
+            }) { [weak self] _ in
+                UIView.animate(withDuration: 0.3) {
+                    self?.countDownLabel.transform = .identity
+                    self?.pulseView.alpha = 0.2
+                }
+            }
+            
             seconds -= 1
         }
     }
     
     private let countDownLabel: UILabel = {
         let label = UILabel()
-        label.font = UIDevice.isIpad ? UIFont.makeAvenirNext(size: 300) : UIFont.makeAvenirNext(size: 200)
+        label.font = UIFont.systemFont(ofSize: UIDevice.isIpad ? 180 : 140, weight: .black)
         label.textAlignment = .center
         label.backgroundColor = .clear
-        label.textColor = .goatBlue
+        label.textColor = .white
+        
+        // Add shadow for depth
+        label.layer.shadowColor = UIColor.goatBlue.cgColor
+        label.layer.shadowOffset = CGSize(width: 0, height: 0)
+        label.layer.shadowRadius = 20
+        label.layer.shadowOpacity = 0.8
+        
         return label
     }()
     
@@ -53,12 +74,16 @@ final class LoadingView: UIView {
         self.backgroundColor = backgroundColor
         self.seconds = secondsOfRest
         countDownLabel.text = "10"
+        setupGetReadyLabel()
+        setupPulseView()
+        
         if !nextExercise.isEmpty {
             let textToSpeak = "\(nextExercise) is coming up"
           //  SpeechSynthesizer.shared.textToSpeak(text: textToSpeak)
-            nextExerciseLabel.text = textToSpeak
+            nextExerciseLabel.text = nextExercise.uppercased()
             nextExerciseLabel.textColor = .white
             nextExerciseLabel.textAlignment = .center
+            nextExerciseLabel.font = UIFont.systemFont(ofSize: UIDevice.isIpad ? 32 : 24, weight: .bold)
             
         }
         
@@ -79,13 +104,7 @@ final class LoadingView: UIView {
             ])
             videoView.play()
         } else {
-            addSubview(countDownLabel)
-            countDownLabel.fillSuperview(padding: UIEdgeInsets(top: UIDevice.isIpad ? 100 : 50, left: 0, bottom: 0, right: 0))
-            addSubview(nextExerciseLabel)
-            nextExerciseLabel.translatesAutoresizingMaskIntoConstraints = false
-            nextExerciseLabel.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -100).isActive = true
-            nextExerciseLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12).isActive = true
-            nextExerciseLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12).isActive = true
+            setupConstraints()
         }
     }
     
@@ -96,6 +115,75 @@ final class LoadingView: UIView {
         }
     }
     
+    private func setupGetReadyLabel() {
+        // Hide the GET READY label - we only want numbers
+        getReadyLabel.isHidden = true
+    }
+    
+    private func setupPulseView() {
+        pulseView.backgroundColor = UIColor.goatBlue.withAlphaComponent(0.1)
+        pulseView.layer.cornerRadius = UIDevice.isIpad ? 150 : 120
+        pulseView.alpha = 0.2
+        
+        // Create continuous subtle pulse
+        let pulseAnimation = CABasicAnimation(keyPath: "transform.scale")
+        pulseAnimation.duration = 1.5
+        pulseAnimation.fromValue = 1.0
+        pulseAnimation.toValue = 1.1
+        pulseAnimation.autoreverses = true
+        pulseAnimation.repeatCount = .infinity
+        pulseAnimation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        
+        pulseView.layer.add(pulseAnimation, forKey: "pulse")
+    }
+    
+    private func setupConstraints() {
+        // Add pulse view behind countdown
+        addSubview(pulseView)
+        pulseView.translatesAutoresizingMaskIntoConstraints = false
+        
+        // Add main labels
+        addSubview(getReadyLabel)
+        addSubview(countDownLabel)
+        addSubview(nextExerciseLabel)
+        
+        getReadyLabel.translatesAutoresizingMaskIntoConstraints = false
+        countDownLabel.translatesAutoresizingMaskIntoConstraints = false
+        nextExerciseLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            // Pulse view constraints - centered behind countdown
+            pulseView.centerXAnchor.constraint(equalTo: centerXAnchor),
+            pulseView.centerYAnchor.constraint(equalTo: centerYAnchor),
+            pulseView.widthAnchor.constraint(equalToConstant: UIDevice.isIpad ? 300 : 240),
+            pulseView.heightAnchor.constraint(equalToConstant: UIDevice.isIpad ? 300 : 240),
+            
+            // Countdown number - centered (no GET READY label)
+            countDownLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
+            countDownLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            countDownLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            countDownLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            
+            // Exercise name - bottom
+            nextExerciseLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
+            nextExerciseLabel.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: UIDevice.isIpad ? -80 : -60),
+            nextExerciseLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            nextExerciseLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20)
+        ])
+        
+        // Add entrance animation for countdown only
+        countDownLabel.alpha = 0
+        nextExerciseLabel.alpha = 0
+        
+        UIView.animate(withDuration: 0.6, delay: 0.1, options: [.curveEaseOut], animations: { [weak self] in
+            self?.countDownLabel.alpha = 1.0
+        })
+        
+        UIView.animate(withDuration: 0.6, delay: 0.3, options: [.curveEaseOut], animations: { [weak self] in
+            self?.nextExerciseLabel.alpha = 0.8
+        })
+    }
+
     required init?(coder: NSCoder) {
         return nil
     }

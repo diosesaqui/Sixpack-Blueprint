@@ -40,14 +40,30 @@ struct Workout: Codable {
         default:
             exercises = self.exercises
         }
+        
+        // Remove any potential duplicate updog entries first
+        exercises.removeAll(where: { $0.name.lowercased() == "updog" })
+        
+        // Add updog as the final cool-down/stretch exercise
         exercises.append(updog)
         
-        return exercises
+        // Remove any duplicates while preserving order (safety check)
+        var uniqueExercises: [Exercise] = []
+        var seenNames = Set<String>()
+        for exercise in exercises {
+            let normalizedName = exercise.name.lowercased()
+            if !seenNames.contains(normalizedName) {
+                uniqueExercises.append(exercise)
+                seenNames.insert(normalizedName)
+            }
+        }
+        
+        return uniqueExercises
     }
     
     var numberOfSets: Int {
         switch user.coreLevel {
-        case .beginner: return 3
+        case .beginner: return 2
         case .novice: return 3
         case .solid: return 4
         case .advanced: return 5
