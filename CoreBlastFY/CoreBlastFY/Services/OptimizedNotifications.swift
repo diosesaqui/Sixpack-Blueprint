@@ -145,80 +145,28 @@ class OptimizedNotificationManager {
         let (hour, minute) = getHourAndMinuteFromDate(date: selectedTime)
         guard let unwrappedHour = hour, let unwrappedMinute = minute else { return }
         
-        // Personalized messages based on user engagement level and streak
-        let engagementLevel = getUserEngagementLevel()
-        let currentStreak = getCurrentStreak()
-        let motivationalMessages: [(String, String)]
+        // Simple consistent message
+        let notificationTitle = "Time for workout 💪"
+        let notificationBody = "Your core workout is ready!"
         
-        // Special streak messages when applicable
-        if currentStreak >= 7 {
-            motivationalMessages = [
-                ("🔥 \(currentStreak)-day streak!", "You're absolutely crushing it!"),
-                ("⚡ Streak master!", "\(currentStreak) days straight - legendary!"),
-                ("💎 Unstoppable!", "Don't break that \(currentStreak)-day chain!"),
-                ("🏆 Streak champion!", "\(currentStreak) days of greatness!"),
-                ("👑 You're on fire!", "Keep that \(currentStreak)-day momentum!"),
-                ("🚀 Consistency king!", "\(currentStreak) days = pure dedication"),
-                ("⭐ Streak legend!", "This \(currentStreak)-day run is incredible!")
-            ]
-        } else {
-            switch engagementLevel {
-            case "champion":
-                motivationalMessages = [
-                    ("🏆 Champions train daily!", "Time to dominate another core session"),
-                    ("👑 You're a core legend!", "Show them how it's done"),
-                    ("⚡ Unstoppable force!", "Your dedication is inspiring"),
-                    ("🔥 Core master mode!", "Another day, another victory"),
-                    ("💎 Elite level achieved!", "Champions train when they don't feel like it"),
-                    ("🚀 Ready to dominate!", "This is what greatness looks like"),
-                    ("⭐ Legendary status!", "Your consistency is unmatched")
-                ]
-            case "committed":
-                motivationalMessages = [
-                    ("💪 Building momentum!", "Time to level up your core"),
-                    ("🎯 Consistency is key!", "You're in the groove now"),
-                    ("🔥 You're on track!", "Don't stop when you're winning"),
-                    ("⚡ Strong foundation!", "Every workout builds your strength"),
-                    ("🚀 Keep climbing!", "You're becoming unstoppable"),
-                    ("💥 Rhythm found!", "This is where transformation happens"),
-                    ("🌟 Show must go on!", "Your body is adapting amazingly")
-                ]
-            case "building":
-                motivationalMessages = [
-                    ("🌱 Growing stronger!", "Every rep is progress"),
-                    ("🎯 You're getting there!", "Consistency beats perfection"),
-                    ("💪 Building the habit!", "Small steps, big results"),
-                    ("⚡ Progress in motion!", "You're doing better than you think"),
-                    ("🔥 Momentum building!", "Keep showing up for yourself"),
-                    ("🚀 On the right path!", "Your future self will thank you"),
-                    ("💎 Forming greatness!", "This is how champions are made")
-                ]
-            default: // beginner
-                motivationalMessages = [
-                    ("🌟 Start strong today!", "Just 5 minutes can change everything"),
-                    ("💪 You've got this!", "Every champion started somewhere"),
-                    ("🎯 Begin your journey!", "The first step is always the hardest"),
-                    ("⚡ Quick wins await!", "Small actions, massive results"),
-                    ("🔥 Ignite your potential!", "Your transformation starts now"),
-                    ("🚀 Launch your goals!", "Believe in your ability to succeed"),
-                    ("💎 Discover your strength!", "You're stronger than you think")
-                ]
+        // Get selected days from UserDefaults or use default (Mon-Fri)
+        let defaultDays = [false, true, true, true, true, true, false] // Sun-Sat, Mon-Fri selected
+        let selectedDays = UserDefaults.standard.array(forKey: "notificationSelectedDays") as? [Bool] ?? defaultDays
+        
+        // Schedule for selected days
+        // Note: In iOS, weekday 1 = Sunday, 2 = Monday, ..., 7 = Saturday
+        for (index, isSelected) in selectedDays.enumerated() {
+            if isSelected {
+                let weekday = index + 1 // Convert array index to iOS weekday (1-7)
+                scheduleWeeklyNotification(
+                    id: "\(NotificationID.dailyWorkout)_\(weekday)",
+                    title: notificationTitle,
+                    body: notificationBody,
+                    weekday: weekday,
+                    hour: unwrappedHour,
+                    minute: unwrappedMinute
+                )
             }
-        }
-        
-        // Schedule for each day of the week with rotating messages
-        for weekday in 1...7 {
-            let messageIndex = (weekday - 1) % motivationalMessages.count
-            let (title, body) = motivationalMessages[messageIndex]
-            
-            scheduleWeeklyNotification(
-                id: "\(NotificationID.dailyWorkout)_\(weekday)",
-                title: title,
-                body: body,
-                weekday: weekday,
-                hour: unwrappedHour,
-                minute: unwrappedMinute
-            )
         }
     }
     
@@ -350,8 +298,12 @@ class OptimizedNotificationManager {
         }
     }
     
-    func updateNotificationTime(newTime: Date) {
-        // Re-setup notifications with new time
+    func updateNotificationTime(newTime: Date, selectedDays: [Bool]? = nil) {
+        // Save selected days if provided
+        if let days = selectedDays {
+            UserDefaults.standard.set(days, forKey: "notificationSelectedDays")
+        }
+        // Re-setup notifications with new time and selected days
         setupOptimizedNotifications()
     }
     

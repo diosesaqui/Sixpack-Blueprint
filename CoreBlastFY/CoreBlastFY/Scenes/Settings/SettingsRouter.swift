@@ -22,6 +22,7 @@ import UIKit
     func routeToThirtyDayChallenge()
     func routeToCustomWorkoutScene()
     func routeToExercises()
+    func routeToMembership()
 }
 
 protocol SettingsDataPassing
@@ -91,6 +92,36 @@ class SettingsRouter: NSObject, SettingsRoutingLogic, SettingsDataPassing
 //        self.exercisesNavVC.navigationBar.tintColor = .white
 //        self.exercisesNavVC.tabBarItem = UITabBarItem(title: "Exercises", image: #imageLiteral(resourceName: "exercises"), selectedImage: nil)
 //        self.exercisesNavVC.navigationBar.titleTextAttributes = [.foregroundColor: UIColor.white]
+    }
+    
+    func routeToMembership() {
+        // Check if user is premium and route accordingly
+        if StoreManager.shared.isPremium {
+            // Create and present MembershipDetailView
+            let membershipDetailView = MembershipDetailView()
+            let hostingController = HostingViewController(view: membershipDetailView)
+            navigateTo(source: viewController!, destination: hostingController)
+        } else {
+            // Present SubscriptionView modally for non-premium users
+            let subscriptionView = SubscriptionView { [weak self] success in
+                // Handle subscription result
+                if success {
+                    // Subscription successful, dismiss modal
+                    self?.viewController?.dismiss(animated: true)
+                }
+            }
+            let hostingController = HostingViewController(view: subscriptionView)
+            hostingController.modalPresentationStyle = .pageSheet
+            
+            if #available(iOS 15.0, *) {
+                if let sheet = hostingController.sheetPresentationController {
+                    sheet.detents = [.large()]
+                    sheet.prefersGrabberVisible = true
+                }
+            }
+            
+            viewController?.present(hostingController, animated: true)
+        }
     }
 
   }

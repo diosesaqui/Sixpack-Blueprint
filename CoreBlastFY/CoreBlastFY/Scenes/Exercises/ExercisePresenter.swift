@@ -23,7 +23,7 @@ class ExercisePresenter: ExercisePresentationLogic {
   
   func presentExercises(response: Exercises.Videos.Response)
   {
-    let exercisesVM = response.exercises.map( { Exercises.Videos.ViewModel.ExerciseVM(name: $0.name, url: $0.videoURL!) })
+      let exercisesVM = response.exercises.map( { Exercises.Videos.ViewModel.ExerciseVM(name: $0.name, url: $0.videoURL ?? URL(string: "www.apple.com")!) })
     let viewModel = Exercises.Videos.ViewModel(exerciseViewModel: exercisesVM)
     viewController?.displayExercises(viewModel: viewModel)
   }

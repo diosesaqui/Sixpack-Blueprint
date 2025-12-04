@@ -80,9 +80,10 @@ struct WorkoutSettingsView: View {
                         .onChange(of: hapticEnabled) { newValue in
                             WorkoutFeedbackManager.shared.setHapticEnabled(newValue)
                             
-                            // Provide haptic feedback when enabled
+                            // Provide stronger haptic feedback when enabled
                             if newValue {
-                                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                                impactFeedback.prepare()
                                 impactFeedback.impactOccurred()
                             }
                         }

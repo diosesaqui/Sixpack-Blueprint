@@ -598,20 +598,21 @@ class ModernWorkoutView: UIView {
             pauseWorkout()
         }
         
+        // Create the hosting controller first to capture it in the closure
+        var hostingController: HostingViewController<WorkoutSettingsView>!
+        
         // Create and present the settings view as a bottom sheet
-        var settingsShowing = true
         let settingsView = WorkoutSettingsView(isPresented: Binding(
-            get: { settingsShowing },
+            get: { true },
             set: { newValue in
-                settingsShowing = newValue
                 if !newValue {
-                    // Settings dismissed, nothing specific to do here
-                    // User can manually resume the workout
+                    // Dismiss the hosting controller
+                    hostingController.dismiss(animated: true, completion: nil)
                 }
             }
         ))
         
-        let hostingController = HostingViewController(view: settingsView)
+        hostingController = HostingViewController(view: settingsView)
         hostingController.modalPresentationStyle = .pageSheet
         
         if #available(iOS 15.0, *) {

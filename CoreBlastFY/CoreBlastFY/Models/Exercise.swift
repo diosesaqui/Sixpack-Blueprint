@@ -18,6 +18,7 @@ struct Exercise: Codable, Equatable {
     var type: ExerciseType = .core
     var isSide: Bool
     var totalBody: Bool
+    var videoVersion: String?
     
     enum ExerciseType: String, Codable {
         case core
@@ -56,4 +57,11 @@ struct Exercise: Codable, Equatable {
         self.totalBody = totalBody
     }
     
+    func loadVideoURL(completion: @escaping (URL?) -> Void) {
+        VideoManager.shared.getVideoURL(for: self, completion: completion)
+    }
+    
+    mutating func updateVideoURL(_ url: URL) {
+        self.videoURL = url
+    }
 }

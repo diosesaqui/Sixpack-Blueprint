@@ -25,6 +25,7 @@ class User: Codable {
         totalPoints = try container.decodeIfPresent(Int.self, forKey: .totalPoints) ?? 0
         lastWorkoutComplete = try container.decodeIfPresent(Date.self, forKey: .lastWorkoutComplete)
         requestReviewCount = try container.decodeIfPresent(Int.self, forKey: .requestReviewCount) ?? 0
+        lastReviewRequestDate = try container.decodeIfPresent(Date.self, forKey: .lastReviewRequestDate)
         
         // Streak tracking - provide defaults for missing properties
         currentStreak = try container.decodeIfPresent(Int.self, forKey: .currentStreak) ?? 0
@@ -41,7 +42,7 @@ class User: Codable {
     
     // Define coding keys for all properties
     private enum CodingKeys: String, CodingKey {
-        case id, name, coreLevel, totalPoints, lastWorkoutComplete, requestReviewCount
+        case id, name, coreLevel, totalPoints, lastWorkoutComplete, requestReviewCount, lastReviewRequestDate
         case currentStreak, longestStreak, totalWorkoutDays, lastWorkoutDate, workoutHistory
         case selectedHour, selectedMinute, selectedTime
     }
@@ -51,6 +52,7 @@ class User: Codable {
     var totalPoints: Int = 0
     var lastWorkoutComplete: Date?
     var requestReviewCount = 0
+    var lastReviewRequestDate: Date?
     
     // Streak tracking
     var currentStreak: Int = 0
@@ -59,7 +61,17 @@ class User: Codable {
     var lastWorkoutDate: Date?
     var workoutHistory: [Date] = []
     var requestReview: Bool {
-        requestReviewCount < 3
+        // Check if we haven't reached the max request count
+        guard requestReviewCount < 3 else { return false }
+        
+        // Check if enough time has passed since last request (24 hours)
+        if let lastRequest = lastReviewRequestDate {
+            let twentyFourHoursAgo = Date().addingTimeInterval(-24 * 60 * 60)
+            return lastRequest < twentyFourHoursAgo
+        }
+        
+        // If no previous request, allow it
+        return true
     }
     var nextWorkout: Date {
         guard let selectedTime = selectedTime else { 

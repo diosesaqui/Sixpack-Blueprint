@@ -29,9 +29,9 @@ class WorkoutFeedbackManager {
     
     // MARK: - Workout Start Feedback
     func playWorkoutStartFeedback() {
-        // Medium haptic feedback for workout start
+        // Heavy haptic feedback for workout start
         if isHapticEnabled() {
-            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+            let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
             impactFeedback.prepare()
             impactFeedback.impactOccurred()
         }
@@ -42,9 +42,9 @@ class WorkoutFeedbackManager {
     
     // MARK: - Exercise Transition Feedback
     func playExerciseTransitionFeedback() {
-        // Light haptic feedback for exercise transitions
+        // Medium haptic feedback for exercise transitions
         if isHapticEnabled() {
-            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
             impactFeedback.prepare()
             impactFeedback.impactOccurred()
         }
@@ -55,26 +55,24 @@ class WorkoutFeedbackManager {
     
     // MARK: - Countdown Feedback
     func playCountdownFeedback(for count: Int) {
-        // Very light haptic for countdown
+        // Medium haptic for countdown
         if count <= 3 && count > 0 && isHapticEnabled() {
-            let selectionFeedback = UISelectionFeedbackGenerator()
-            selectionFeedback.prepare()
-            selectionFeedback.selectionChanged()
+            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+            impactFeedback.prepare()
+            impactFeedback.impactOccurred()
         }
         
-        // Different sound for final countdown
-        if count == 1 {
-            playSystemSound(.countdownFinal)
-        } else if count > 1 {
+        // Play tick sound for all countdown numbers (no special final sound)
+        if count > 0 {
             playSystemSound(.countdownTick)
         }
     }
     
     // MARK: - Rest Period Feedback
     func playRestPeriodFeedback() {
-        // Soft haptic feedback for rest period
+        // Medium haptic feedback for rest period
         if isHapticEnabled() {
-            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
             impactFeedback.prepare()
             impactFeedback.impactOccurred()
         }

@@ -24,6 +24,9 @@ class ExerciseViewController: UIViewController, ExerciseDisplayLogic
     var exerciseVM: [Exercises.Videos.ViewModel.ExerciseVM] = []
     private var exerciseLoadingView: ExercisesLoadingView?
     
+    // Organized exercise sections
+    private var exerciseSections: [(title: String, exercises: [Exercises.Videos.ViewModel.ExerciseVM])] = []
+    
     // MARK: Object lifecycle
     
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?)
@@ -88,16 +91,18 @@ class ExerciseViewController: UIViewController, ExerciseDisplayLogic
         
     }
     
-    private let tableView = UITableView(frame: .zero, style: .plain)
+    private let tableView = UITableView(frame: .zero, style: .grouped)
     
     private func setUpTableView() {
         view.backgroundColor = .black
-        navigationItem.title = "Exercises Library"
+        navigationItem.title = "Exercise Library"
         view.addSubview(tableView)
         tableView.fillSuperview()
         tableView.dataSource = self
         tableView.delegate = self
         tableView.backgroundColor = .black
+        tableView.separatorStyle = .singleLine
+        tableView.separatorColor = UIColor.white.withAlphaComponent(0.2)
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: ExerciseViewController.videoCellId)
     }
     
@@ -108,19 +113,68 @@ class ExerciseViewController: UIViewController, ExerciseDisplayLogic
     
     func displayExercises(viewModel: Exercises.Videos.ViewModel) {
         exerciseVM = viewModel.exerciseViewModel
+        organizeExercisesIntoSections()
         tableView.reloadData()
+    }
+    
+    private func organizeExercisesIntoSections() {
+        exerciseSections = []
+        
+        // Define section titles and exercise name patterns
+        let sectionDefinitions = [
+            ("Core - Beginner", ["plank", "dead bug", "bird dog", "crunches", "wall sit"]),
+            ("Core - Novice", ["leg raises", "bicycle crunches", "russian twists", "flutter kicks", "reverse crunches", "side crunches", "oblique crunches", "side plank", "in outs"]),
+            ("Core - Solid", ["v-ups", "toe touches", "plank jacks", "t plank", "side plank hipdip", "side plank wrap"]),
+            ("Core - Advanced", ["superman", "reverse plank", "open close"]),
+            ("Core - Expert", ["pendulums", "kneedrives"]),
+            
+            ("Upper Body - Beginner", ["wall push ups", "arm circles", "arm swings"]),
+            ("Upper Body - Novice", ["push ups", "shoulder rolls", "shoulder shrugs"]),
+            ("Upper Body - Solid", ["wide push ups", "pike push ups", "dips"]),
+            ("Upper Body - Advanced", ["diamond push ups", "spider push ups"]),
+            ("Upper Body - Expert", ["clap push ups"]),
+            
+            ("Lower Body - Beginner", ["squats", "lunges", "calf raises", "marching in place", "walking in place", "side steps", "standing knee raises"]),
+            ("Lower Body - Novice", ["star jumps"]),
+            ("Lower Body - Solid", ["jump squats", "squat jumps"]),
+            ("Lower Body - Advanced", ["jump lunges", "box jumps"]),
+            ("Lower Body - Expert", ["pistol squats"]),
+            
+            ("Cardio", ["jumping jacks", "high knees", "butt kicks", "mountain climbers", "burpees"]),
+            ("Stretching & Recovery", ["neck rolls", "hip circles", "leg swings", "torso twists", "standing forward fold", "side stretches", "quad stretches", "calf stretches", "deep breathing", "wall angels"])
+        ]
+        
+        for (sectionTitle, exerciseNames) in sectionDefinitions {
+            let sectionExercises = exerciseVM.filter { exercise in
+                exerciseNames.contains { pattern in
+                    exercise.name.lowercased().contains(pattern.lowercased())
+                }
+            }
+            
+            if !sectionExercises.isEmpty {
+                exerciseSections.append((title: sectionTitle, exercises: sectionExercises))
+            }
+        }
     }
 }
 
 extension ExerciseViewController: UITableViewDataSource {
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return exerciseSections.count
+    }
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return exerciseVM.count
+        return exerciseSections[section].exercises.count
+    }
+    
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        return exerciseSections[section].title
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let exercise = exerciseVM[indexPath.row]
+        let exercise = exerciseSections[indexPath.section].exercises[indexPath.row]
         let cell = tableView.dequeueReusableCell(withIdentifier: ExerciseViewController.videoCellId, for: indexPath) as UITableViewCell
-        cell.textLabel?.text = exercise.name.uppercased()
+        cell.textLabel?.text = exercise.name.capitalized
         cell.textLabel?.font = UIFont.makeAvenirNext(size: UIDevice.isIpad ? 28 : 18)
         cell.textLabel?.textColor = .white
         cell.backgroundColor = .black
@@ -132,13 +186,10 @@ extension ExerciseViewController: UITableViewDataSource {
         cell.selectionStyle = .none
         return cell
     }
-    
-    
-    
 }
 extension ExerciseViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let url = exerciseVM[indexPath.row].url
+        let url = exerciseSections[indexPath.section].exercises[indexPath.row].url
         let avPlayerVC = ExercisePlayerViewController()
         avPlayerVC.videoGravity = .resizeAspect
         avPlayerVC.player = AVPlayer(url: url)
@@ -146,5 +197,17 @@ extension ExerciseViewController: UITableViewDelegate {
         present(avPlayerVC, animated: true) {
             avPlayerVC.player?.play()
         }
+    }
+    
+    func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
+        if let header = view as? UITableViewHeaderFooterView {
+            header.textLabel?.textColor = UIColor.goatBlue
+            header.textLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+            header.backgroundView?.backgroundColor = UIColor.black
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 40
     }
 }

@@ -38,6 +38,7 @@ class StoreManager: NSObject, ObservableObject {
     @Published private(set) var subscriptions: [Product]
     @Published private(set) var purchasedSubscriptions: [Product] = []
     @Published private(set) var subscriptionGroupStatus: RenewalState?
+    @Published private(set) var membershipStartDate: Date?
     
     var updateListenerTask: Task<Void, Error>? = nil
     
@@ -212,6 +213,11 @@ class StoreManager: NSObject, ObservableObject {
                 case .autoRenewable:
                     if let subscription = subscriptions.first(where: { $0.id == transaction.productID }) {
                         purchasedSubscriptions.append(subscription)
+                        
+                        // Capture the original purchase date as membership start date
+                        if membershipStartDate == nil || transaction.originalPurchaseDate < membershipStartDate! {
+                            membershipStartDate = transaction.originalPurchaseDate
+                        }
                     }
                 default:
                     break

@@ -242,7 +242,7 @@ class ProgressionCollectionViewController: UICollectionViewController, UIImagePi
     private lazy var cameraPromptLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "Tap  to get started"
+        label.text = "Tap camera icon to get started"
         label.font = UIFont.systemFont(ofSize: 15, weight: .medium)
         label.textColor = UIColor.goatBlue
         label.textAlignment = .center

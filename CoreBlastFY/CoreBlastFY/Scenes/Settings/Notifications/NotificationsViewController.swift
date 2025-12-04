@@ -19,6 +19,12 @@ protocol NotificationsDisplayLogic: AnyObject {
 class NotificationsViewController: UIViewController, NotificationsDisplayLogic {
   var interactor: NotificationsBusinessLogic?
   var router: (NSObjectProtocol & NotificationsRoutingLogic & NotificationsDataPassing)?
+  
+  // MARK: Day Selection Properties
+  private var daySelectionStackView: UIStackView!
+  private var dayToggles: [UISwitch] = []
+  private let dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+  private let defaultSelectedDays = [false, true, true, true, true, true, false] // Mon-Fri by default
 
   // MARK: Object lifecycle
   
@@ -54,7 +60,15 @@ class NotificationsViewController: UIViewController, NotificationsDisplayLogic {
   
   override func viewDidLoad() {
     super.viewDidLoad()
+    view.backgroundColor = .black
+    navigationItem.title = "Notifications"
+    setupCompleteUI()
     getNotificationTime()
+  }
+  
+  private func setupCompleteUI() {
+    setupDaySelectionUI()
+    setupTimePickerUI()
   }
   
   // MARK: Do something
@@ -62,9 +76,9 @@ class NotificationsViewController: UIViewController, NotificationsDisplayLogic {
     private let datePicker = CustomDatePicker()
     private let doneButton: UIButton = {
         let button = UIButton()
-        button.setTitle("Done", for: .normal)
-        button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .title1)
-        button.setTitleColor(.white, for: .normal)
+        button.setTitle("Save", for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
+        button.setTitleColor(.black, for: .normal)
         button.backgroundColor = .goatBlue
         button.addTarget(self, action: #selector(grabDate), for: .touchDown)
         return button
@@ -74,17 +88,97 @@ class NotificationsViewController: UIViewController, NotificationsDisplayLogic {
         UserAPI.user.selectedTime = datePicker.date
         UserManager.save()
         UserDefaults.standard.setValue(UserAPI.user.selectedTime, forKey: UserManager.workoutDateKey)
-        NotificationIDs.removeNotification(ids: NotificationIDs.allIDs)
-        UserAPI.user = UserManager.loadUserFromFile()
-        let userWorkoutDate = UserDefaults.standard.object(forKey: UserManager.workoutDateKey) as? Date
-        UserAPI.user.selectedTime = userWorkoutDate
-        NotificationIDs.prepareNotification(id: NotificationIDs.mondayID, weekday: 2, hour: UserAPI.user.selectedHour ?? 12, minute: UserAPI.user.selectedMinute ?? 0, title: mondayTitle, body: mondayBody)
-        NotificationIDs.prepareNotification(id: NotificationIDs.tuesdayID, weekday: 3, hour: UserAPI.user.selectedHour ?? 12, minute: UserAPI.user.selectedMinute ?? 0, title: tuesdayBody, body: tuesdayBody)
-        NotificationIDs.prepareNotification(id: NotificationIDs.wednesdayID, weekday: 4, hour: UserAPI.user.selectedHour ?? 12, minute: UserAPI.user.selectedMinute ?? 0, title: wednesdayTitle, body: wednesdayBody)
-        NotificationIDs.prepareNotification(id: NotificationIDs.thursdayID, weekday: 5, hour: UserAPI.user.selectedHour ?? 12, minute: UserAPI.user.selectedMinute ?? 0, title: thursdayTitle, body: thursdayBody)
-        NotificationIDs.prepareNotification(id: NotificationIDs.fridayID, weekday: 6, hour: UserAPI.user.selectedHour ?? 12, minute: UserAPI.user.selectedMinute ?? 0, title: fridayTitle, body: fridayBody)
+        
+        // Save selected days
+        var selectedDays: [Bool] = []
+        for toggle in dayToggles {
+            selectedDays.append(toggle.isOn)
+        }
+        UserDefaults.standard.set(selectedDays, forKey: "notificationSelectedDays")
+        
+        // Use the optimized notification manager to update notification time with selected days
+        OptimizedNotificationManager.shared.updateNotificationTime(newTime: datePicker.date, selectedDays: selectedDays)
+        
         navigationController?.popViewController(animated: true)
     }
+    
+    private func setupDaySelectionUI() {
+        // Create container for better organization
+        let containerView = UIView()
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(containerView)
+        
+        // Section header for days selection
+        let daysHeaderLabel = UILabel()
+        daysHeaderLabel.text = "WORKOUT DAYS"
+        daysHeaderLabel.font = UIFont.systemFont(ofSize: 13, weight: .regular)
+        daysHeaderLabel.textColor = UIColor.lightGray // Much brighter for visibility
+        daysHeaderLabel.backgroundColor = .clear
+        daysHeaderLabel.translatesAutoresizingMaskIntoConstraints = false
+        containerView.addSubview(daysHeaderLabel)
+        
+        // Background for day selection - removed gray background
+        
+        // Create main horizontal stack view for all days
+        daySelectionStackView = UIStackView()
+        daySelectionStackView.axis = .horizontal
+        daySelectionStackView.distribution = .fillEqually
+        daySelectionStackView.spacing = 0
+        daySelectionStackView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.addSubview(daySelectionStackView)
+        
+        // Load previously saved days or use defaults
+        let savedDays = UserDefaults.standard.array(forKey: "notificationSelectedDays") as? [Bool] ?? defaultSelectedDays
+        
+        // Create toggle for each day
+        for (index, dayName) in dayNames.enumerated() {
+            let dayContainer = UIStackView()
+            dayContainer.axis = .vertical
+            dayContainer.alignment = .center
+            dayContainer.spacing = 8
+            
+            let dayLabel = UILabel()
+            dayLabel.text = dayName
+            dayLabel.font = UIFont.systemFont(ofSize: 15, weight: .regular)
+            dayLabel.textColor = UIColor.systemGray
+            dayLabel.textAlignment = .center
+            
+            let toggle = UISwitch()
+            toggle.onTintColor = .goatBlue
+            toggle.isOn = savedDays[index]
+            toggle.transform = CGAffineTransform(scaleX: 0.75, y: 0.75)
+            dayToggles.append(toggle)
+            
+            dayContainer.addArrangedSubview(dayLabel)
+            dayContainer.addArrangedSubview(toggle)
+            
+            daySelectionStackView.addArrangedSubview(dayContainer)
+        }
+        
+        // Setup constraints
+        NSLayoutConstraint.activate([
+            // Container
+            containerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
+            containerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            containerView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            
+            // Header
+            daysHeaderLabel.topAnchor.constraint(equalTo: containerView.topAnchor),
+            daysHeaderLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            
+            // Stack view directly under header
+            daySelectionStackView.topAnchor.constraint(equalTo: daysHeaderLabel.bottomAnchor, constant: 16),
+            daySelectionStackView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            daySelectionStackView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            daySelectionStackView.heightAnchor.constraint(equalToConstant: 60),
+            daySelectionStackView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
+        ])
+        
+        // Store container reference for later use
+        self.daySelectionContainer = containerView
+    }
+    
+    private var daySelectionContainer: UIView?
     
   func getNotificationTime() {
     let request = Notifications.SelectedTime.Request()
@@ -92,28 +186,54 @@ class NotificationsViewController: UIViewController, NotificationsDisplayLogic {
   }
   
   func displaySelectedTime(viewModel: Notifications.SelectedTime.ViewModel) {
-    configureDatePicker()
+    // Only set the date, don't recreate the UI
     datePicker.date = viewModel.selectedDate
   }
-    private func configureDatePicker() {
-        datePicker.datePickerMode = .time
+  
+  private func setupTimePickerUI() {
+        // Time picker section header
+        let timeHeaderLabel = UILabel()
+        timeHeaderLabel.text = "NOTIFICATION TIME"
+        timeHeaderLabel.font = UIFont.systemFont(ofSize: 13, weight: .regular)
+        timeHeaderLabel.textColor = UIColor.lightGray // Much brighter for visibility
+        timeHeaderLabel.backgroundColor = .clear
+        timeHeaderLabel.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(timeHeaderLabel)
         
-        view.addSubview(datePicker)
-        datePicker.backgroundColor = .goatBlack
+        // Time picker background - removed gray background
+        
+        // Configure date picker
+        datePicker.datePickerMode = .time
+        datePicker.preferredDatePickerStyle = .wheels
+        datePicker.backgroundColor = .black
+        datePicker.setValue(UIColor.white, forKeyPath: "textColor")
         datePicker.translatesAutoresizingMaskIntoConstraints = false
-        datePicker.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
-        datePicker.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
-        datePicker.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
-        datePicker.heightAnchor.constraint(equalToConstant: NotificationsViewController.Dimensions.datePickerHeight).isActive = true
-    
-   
+        view.addSubview(datePicker)
+        
+        // Save button styling
         view.addSubview(doneButton)
         doneButton.translatesAutoresizingMaskIntoConstraints = false
-        doneButton.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
-        doneButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -50).isActive = true
-        doneButton.heightAnchor.constraint(equalToConstant: NotificationsViewController.Dimensions.doneButton.top).isActive = true
-        doneButton.widthAnchor.constraint(equalToConstant: view.frame.width * NotificationsViewController.Dimensions.doneButton.left).isActive = true
-        doneButton.layer.cornerRadius = NotificationsViewController.Dimensions.doneButtonCornerRadius
+        doneButton.layer.cornerRadius = 14
+        doneButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
+        
+        // Setup constraints
+        NSLayoutConstraint.activate([
+            // Time header
+            timeHeaderLabel.topAnchor.constraint(equalTo: daySelectionContainer?.bottomAnchor ?? view.topAnchor, constant: 32),
+            timeHeaderLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            
+            // Date picker directly under header
+            datePicker.topAnchor.constraint(equalTo: timeHeaderLabel.bottomAnchor, constant: 16),
+            datePicker.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            datePicker.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            datePicker.heightAnchor.constraint(equalToConstant: 216),
+            
+            // Save button
+            doneButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            doneButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            doneButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -32),
+            doneButton.heightAnchor.constraint(equalToConstant: 56)
+        ])
     }
 }
 

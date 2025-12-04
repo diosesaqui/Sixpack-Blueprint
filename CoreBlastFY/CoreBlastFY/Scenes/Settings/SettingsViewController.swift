@@ -86,6 +86,10 @@ class SettingsViewController: UITableViewController, SettingsDisplayLogic {
     private func routeToExercises() {
         router?.routeToExercises()
     }
+    
+    private func routeToMembership() {
+        router?.routeToMembership()
+    }
 
     // MARK: View lifecycle
     
@@ -164,6 +168,7 @@ class SettingsViewController: UITableViewController, SettingsDisplayLogic {
 //        case .thirtyDayChallenge: routeToChallenge()
         case .programOverview: routeToProgramOverview()
         case .notifications: routeToNotificationsScene()
+        case .membership: routeToMembership()
         case .review: leaveAReview()
         case .donation: sendADonation()
        // case .foodLog: routeToFoodLogScene()

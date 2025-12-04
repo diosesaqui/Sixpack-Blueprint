@@ -24,6 +24,7 @@ enum Settings {
                   case thirtyDayChallenge  = "30 Day Challenge 💪"
                   case programOverview = "Program Overview"
                   case exercises = "Exercises"
+                  case membership = "Membership"
                   case notifications = "Notifications"
                   case review = "Leave a 5 star review!"
                   case donation = "Want to buy me a coffee? :)"
@@ -41,12 +42,13 @@ enum Settings {
         .programOverview,
         .exercises,
         //.customWorkout,
+        .membership,
         .notifications,
         .review,
        // .donation,
       //  .foodLog,
         .reportAProblem,
-        .inAppPurchase,
+       // .inAppPurchase,
        // .termsOfUse,
         ]
     }

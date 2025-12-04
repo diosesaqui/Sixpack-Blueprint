@@ -33,15 +33,19 @@ class HomeViewController: UITabBarController, MFMailComposeViewControllerDelegat
                    
                    alert.addAction(UIAlertAction(title: "Leave a 5 star review", style: .default, handler: { [weak self] _ in
                        if let scene = self?.view.window?.windowScene {
-                                   SKStoreReviewController.requestReview(in: scene)
+                           AppStore.requestReview(in: scene)
                            UserAPI.user.requestReviewCount += 1
+                           UserAPI.user.lastReviewRequestDate = Date()
                            UserManager.save()
-                               }
+                       } else {
+                           print("Failed to get window scene for review request")
+                       }
                    }))
                    
                    alert.addAction(UIAlertAction(title: "Leave feedback", style: .destructive, handler: { _ in
                        self.sendEmail()
                        UserAPI.user.requestReviewCount += 3
+                       UserAPI.user.lastReviewRequestDate = Date()
                        UserManager.save()
                    }))
                    
@@ -99,6 +103,7 @@ class HomeViewController: UITabBarController, MFMailComposeViewControllerDelegat
     private var exercisesNavVC: UINavigationController!
     private var settingsNavController: UINavigationController!
     private var dashboardNavController: UINavigationController!
+    private var browseNavController: UINavigationController!
     
     
     private func setup() {
@@ -134,6 +139,15 @@ class HomeViewController: UITabBarController, MFMailComposeViewControllerDelegat
         dashboardNavController.navigationBar.barStyle = .black
         dashboardNavController.navigationBar.titleTextAttributes = [.foregroundColor: UIColor.white]
         
+        
+        let browseViewController = BrowseViewController()
+        browseViewController.navigationItem.title = "Browse"
+        browseNavController = UINavigationController(rootViewController: browseViewController)
+        browseNavController.tabBarItem = UITabBarItem(title: "Browse", image: UIImage(systemName: "square.grid.2x2.fill"), selectedImage: nil)
+        browseNavController.navigationBar.prefersLargeTitles = true
+        browseNavController.navigationBar.barStyle = .black
+        browseNavController.navigationBar.titleTextAttributes = [.foregroundColor: UIColor.white]
+        
         let settingsViewController = SettingsViewController()
         settingsNavController = UINavigationController(rootViewController: settingsViewController)
         settingsNavController.tabBarItem = UITabBarItem(title: "More", image: UIImage(systemName: "gear" ), selectedImage: nil)
@@ -142,7 +156,7 @@ class HomeViewController: UITabBarController, MFMailComposeViewControllerDelegat
         settingsNavController.navigationBar.titleTextAttributes = [.foregroundColor: UIColor.white]
         
         self.setupPreworkoutVC()
-        setViewControllers([workoutNavController, progressionNavController, dashboardNavController,  settingsNavController], animated: true)
+        setViewControllers([workoutNavController, browseNavController, progressionNavController, dashboardNavController,  settingsNavController], animated: true)
         self.customizableViewControllers = []
         
         selectedViewController = viewControllers?[0]
