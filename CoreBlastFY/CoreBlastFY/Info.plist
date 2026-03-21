@@ -9,7 +9,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Sixpack Blueprint</string>
+	<string>Six Pack in 30 Days Blueprint</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -77,17 +77,17 @@
 	<key>NSUserTrackingUsageDescription</key>
 	<string>We use this to show you relevant ads and improve your experience.</string>
 	<key>FacebookAppID</key>
-	<string>REPLACE_WITH_FB_APP_ID</string>
+	<string>1130695069161877</string>
 	<key>FacebookClientToken</key>
-	<string>REPLACE_WITH_FB_CLIENT_TOKEN</string>
+	<string>e2bd0f99f98b9bdfacf0789911d9cf0b</string>
 	<key>FacebookDisplayName</key>
-	<string>Sixpack Blueprint</string>
+	<string>Six Pack in 30 Days Blueprint</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>fbREPLACE_WITH_FB_APP_ID</string>
+				<string>fb1130695069161877</string>
 			</array>
 		</dict>
 	</array>
