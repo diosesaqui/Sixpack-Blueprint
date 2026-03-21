@@ -30,7 +30,8 @@ class HomeViewController: UITabBarController, MFMailComposeViewControllerDelegat
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        requestReview()
+        // Review prompt moved to post-workout completion to ensure user has experienced the app
+        // requestReview() is now called from WorkoutViewController after workout completion
     }
     
     private func setupPremiumButton() {

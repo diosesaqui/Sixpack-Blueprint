@@ -117,7 +117,7 @@ struct SubscriptionView: View {
     
     @StateObject private var storeManager = StoreManager.shared
     @State private var selectedOption: SubscriptionOption?
-    @State private var showOneTimeOffer = false
+    @State private var showOneTimeOffer = false  // One-time offer enabled
     @State private var currentTestimonialIndex = 0
     @StateObject private var viewModel = PurchaseViewModel()
     
@@ -131,15 +131,18 @@ struct SubscriptionView: View {
             switch product.id {
             case InAppIds.premiumAnnual:
                 let monthlyPrice = product.price / 12
+                let hasFreeTrial = product.subscription?.introductoryOffer != nil
                 option = SubscriptionOption(
                     id: product.id,
                     title: "Yearly",
                     price: monthlyPrice.formatted(.currency(code: product.priceFormatStyle.currencyCode)) + " / mo",
                     billingPeriod: product.displayPrice,
                     savings: "Save 65%",
-                    cta: "SUBSCRIBE",
-                    ctaTitle: "\(product.displayPrice) billed annually. Cancel Anytime.",
-                    freeTrial: false
+                    cta: hasFreeTrial ? "START FREE TRIAL" : "SUBSCRIBE",
+                    ctaTitle: hasFreeTrial
+                        ? "7-day free trial, then \(product.displayPrice)/year. Cancel Anytime."
+                        : "\(product.displayPrice) billed annually. Cancel Anytime.",
+                    freeTrial: hasFreeTrial
                 )
             case InAppIds.premiumMonthly:
                 option = SubscriptionOption(
@@ -151,6 +154,16 @@ struct SubscriptionView: View {
                     cta: "SUBSCRIBE",
                     ctaTitle: "\(product.displayPrice) monthly. Cancel Anytime."
                 )
+            case InAppIds.premiumWeekly:
+                option = SubscriptionOption(
+                    id: product.id,
+                    title: "Weekly",
+                    price: product.displayPrice + " / wk",
+                    billingPeriod: "per week",
+                    savings: nil,
+                    cta: "SUBSCRIBE",
+                    ctaTitle: "\(product.displayPrice) weekly. Cancel Anytime."
+                )
             default:
                 continue
             }
@@ -160,17 +173,16 @@ struct SubscriptionView: View {
         // Fallback to hardcoded options if products aren't loaded yet
         if dynamicOptions.isEmpty {
             return [
-                // Yearly first - most popular and best value
-                SubscriptionOption(id: InAppIds.premiumAnnual, title: "Yearly", price: "$1.67 / mo", billingPeriod: "$19.99", savings: "Save 65%", cta: "SUBSCRIBE", ctaTitle: "$19.99 billed annually. Cancel Anytime.", freeTrial: false),
-                SubscriptionOption(id: InAppIds.premiumMonthly, title: "Monthly", price: "$4.99 / mo", billingPeriod: "per month", savings: nil, cta: "SUBSCRIBE", ctaTitle: "$4.99 monthly. Cancel Anytime.")
+                SubscriptionOption(id: InAppIds.premiumAnnual, title: "Yearly", price: "$1.67 / mo", billingPeriod: "$19.99", savings: "Save 65%", cta: "START FREE TRIAL", ctaTitle: "7-day free trial, then $19.99/year. Cancel Anytime.", freeTrial: true),
+                SubscriptionOption(id: InAppIds.premiumMonthly, title: "Monthly", price: "$4.99 / mo", billingPeriod: "per month", savings: nil, cta: "SUBSCRIBE", ctaTitle: "$4.99 monthly. Cancel Anytime."),
+                SubscriptionOption(id: InAppIds.premiumWeekly, title: "Weekly", price: "$2.99 / wk", billingPeriod: "per week", savings: nil, cta: "SUBSCRIBE", ctaTitle: "$2.99 weekly. Cancel Anytime.")
             ]
         }
         
-        // Sort to ensure yearly plan comes first (most popular)
+        // Sort: Yearly first, Monthly second, Weekly third
         return dynamicOptions.sorted { lhs, rhs in
-            if lhs.id == InAppIds.premiumAnnual { return true }
-            if rhs.id == InAppIds.premiumAnnual { return false }
-            return false
+            let order: [String: Int] = [InAppIds.premiumAnnual: 0, InAppIds.premiumMonthly: 1, InAppIds.premiumWeekly: 2]
+            return (order[lhs.id] ?? 99) < (order[rhs.id] ?? 99)
         }
     }
    
@@ -199,8 +211,7 @@ struct SubscriptionView: View {
                     .cornerRadius(10)
             }
             
-            // One-Time Offer Modal Overlay - DISABLED FOR NOW
-            /*
+            // One-Time Offer Modal Overlay
             if showOneTimeOffer {
                 OneTimeOfferModal(
                     isPresented: $showOneTimeOffer,
@@ -210,12 +221,10 @@ struct SubscriptionView: View {
                     },
                     onDismiss: {
                         AnalyticsManager.shared.trackOneTimeOfferDismissed()
-                        // When user dismisses the one-time offer, complete onboarding without purchase
                         callBack?(false)
                     }
                 )
             }
-            */
         }
         .onAppear {
             selectedOption = options.first // Select yearly by default
@@ -355,10 +364,12 @@ struct SubscriptionView: View {
                             .opacity(0.8)
                     }
                     
-                    Text("4.8 star rating")
+                    Text("Join 50,000+ people building their best core")
                         .font(.system(size: 16))
                         .foregroundColor(.white)
                         .opacity(0.9)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 20)
                 }
                 .padding(.top, 20)
                 .padding(.bottom, 40) // Extra padding for sticky bottom content

@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import StoreKit
 
 protocol WorkoutDisplayLogic: AnyObject {
     func displayWorkout(viewModel: WorkoutInfo.FetchWorkout.ViewModel)
@@ -152,6 +153,19 @@ class WorkoutViewController: UIViewController, WorkoutDisplayLogic {
         
         showPreWorkoutUI()
         NotificationCenter.default.post(name: workoutCompleteNotification2, object: nil)
+        
+        // Request review after completing a workout (only if user has points/engagement)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+            guard let self = self else { return }
+            if UserAPI.user.totalPoints > 0, UserAPI.user.requestReview {
+                if let scene = self.view.window?.windowScene {
+                    AppStore.requestReview(in: scene)
+                    UserAPI.user.requestReviewCount += 1
+                    UserAPI.user.lastReviewRequestDate = Date()
+                    UserManager.save()
+                }
+            }
+        }
     }
     
     private func trackWorkoutCompletion() {

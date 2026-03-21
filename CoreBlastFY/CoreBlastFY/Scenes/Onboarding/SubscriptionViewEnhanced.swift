@@ -21,6 +21,7 @@ struct SubscriptionViewEnhanced: View {
     @State private var animateBenefits = false
     @State private var animateIcons = false
     @State private var pulseSubscribe = false
+    @State private var showOneTimeOffer = false
     
     // Dynamic subscription options
     private var options: [SubscriptionOption] {
@@ -32,15 +33,18 @@ struct SubscriptionViewEnhanced: View {
             switch product.id {
             case InAppIds.premiumAnnual:
                 let monthlyPrice = product.price / 12
+                let hasFreeTrial = product.subscription?.introductoryOffer != nil
                 option = SubscriptionOption(
                     id: product.id,
                     title: "Yearly",
                     price: monthlyPrice.formatted(.currency(code: product.priceFormatStyle.currencyCode)) + " / mo",
                     billingPeriod: product.displayPrice,
                     savings: "Save 65%",
-                    cta: "SUBSCRIBE",
-                    ctaTitle: "\(product.displayPrice) billed annually. Cancel Anytime.",
-                    freeTrial: false
+                    cta: hasFreeTrial ? "START FREE TRIAL" : "SUBSCRIBE",
+                    ctaTitle: hasFreeTrial
+                        ? "7-day free trial, then \(product.displayPrice)/year. Cancel Anytime."
+                        : "\(product.displayPrice) billed annually. Cancel Anytime.",
+                    freeTrial: hasFreeTrial
                 )
             case InAppIds.premiumMonthly:
                 option = SubscriptionOption(
@@ -52,6 +56,16 @@ struct SubscriptionViewEnhanced: View {
                     cta: "SUBSCRIBE",
                     ctaTitle: "\(product.displayPrice) monthly. Cancel Anytime."
                 )
+            case InAppIds.premiumWeekly:
+                option = SubscriptionOption(
+                    id: product.id,
+                    title: "Weekly",
+                    price: product.displayPrice + " / wk",
+                    billingPeriod: "per week",
+                    savings: nil,
+                    cta: "SUBSCRIBE",
+                    ctaTitle: "\(product.displayPrice) weekly. Cancel Anytime."
+                )
             default:
                 continue
             }
@@ -60,15 +74,28 @@ struct SubscriptionViewEnhanced: View {
         
         if dynamicOptions.isEmpty {
             return [
-                SubscriptionOption(id: InAppIds.premiumAnnual, title: "Yearly", price: "$1.67 / mo", billingPeriod: "$19.99", savings: "Save 65%", cta: "SUBSCRIBE", ctaTitle: "$19.99 billed annually. Cancel Anytime.", freeTrial: false),
-                SubscriptionOption(id: InAppIds.premiumMonthly, title: "Monthly", price: "$4.99 / mo", billingPeriod: "per month", savings: nil, cta: "SUBSCRIBE", ctaTitle: "$4.99 monthly. Cancel Anytime.")
+                SubscriptionOption(id: InAppIds.premiumAnnual, title: "Yearly", price: "$1.67 / mo", billingPeriod: "$19.99", savings: "Save 65%", cta: "START FREE TRIAL", ctaTitle: "7-day free trial, then $19.99/year. Cancel Anytime.", freeTrial: true),
+                SubscriptionOption(id: InAppIds.premiumMonthly, title: "Monthly", price: "$4.99 / mo", billingPeriod: "per month", savings: nil, cta: "SUBSCRIBE", ctaTitle: "$4.99 monthly. Cancel Anytime."),
+                SubscriptionOption(id: InAppIds.premiumWeekly, title: "Weekly", price: "$2.99 / wk", billingPeriod: "per week", savings: nil, cta: "SUBSCRIBE", ctaTitle: "$2.99 weekly. Cancel Anytime.")
             ]
         }
         
+        // Sort: Yearly first, Monthly second, Weekly third
         return dynamicOptions.sorted { lhs, rhs in
-            if lhs.id == InAppIds.premiumAnnual { return true }
-            if rhs.id == InAppIds.premiumAnnual { return false }
-            return false
+            let order: [String: Int] = [InAppIds.premiumAnnual: 0, InAppIds.premiumMonthly: 1, InAppIds.premiumWeekly: 2]
+            return (order[lhs.id] ?? 99) < (order[rhs.id] ?? 99)
+        }
+    }
+    
+    // CTA button label based on selected plan
+    private var ctaButtonTitle: String {
+        guard let option = selectedOption else { return "Get Started" }
+        if option.freeTrial { return "Start Free Trial" }
+        switch option.id {
+        case InAppIds.premiumAnnual:  return "Get Yearly Access"
+        case InAppIds.premiumMonthly: return "Get Monthly Access"
+        case InAppIds.premiumWeekly:  return "Get Weekly Access"
+        default:                      return "Subscribe Now"
         }
     }
     
@@ -82,10 +109,26 @@ struct SubscriptionViewEnhanced: View {
             if viewModel.isPurchasing {
                 LoadingOverlay()
             }
+            
+            // One-Time Offer Modal
+            if showOneTimeOffer {
+                OneTimeOfferModal(
+                    isPresented: $showOneTimeOffer,
+                    onPurchase: { option in
+                        AnalyticsManager.shared.trackOneTimeOfferAccepted()
+                        viewModel.purchase(productID: option.id)
+                    },
+                    onDismiss: {
+                        AnalyticsManager.shared.trackOneTimeOfferDismissed()
+                        callBack?(false)
+                    }
+                )
+            }
         }
         .onAppear {
             selectedOption = options.first
             AnalyticsManager.shared.trackSubscriptionViewShown(trigger: "onboarding")
+            FacebookManager.shared.logEvent(.paywallShown)
             
             viewModel.callBack = { success in
                 if success {
@@ -129,7 +172,8 @@ struct SubscriptionViewEnhanced: View {
                 HStack {
                     Button(action: {
                         HapticFeedbackManager.shared.impact(.medium)
-                        callBack?(false)
+                        AnalyticsManager.shared.trackOneTimeOfferShown()
+                        showOneTimeOffer = true
                     }) {
                         Image(systemName: "xmark")
                             .font(.system(size: 18, weight: .medium))
@@ -226,11 +270,12 @@ struct SubscriptionViewEnhanced: View {
                         // Animated star rating
                         AnimatedStarRating()
                         
-                        Text("4.8 star rating")
+                        Text("Join 50,000+ people building their best core")
                             .font(.system(size: 16))
                             .foregroundColor(.white)
                             .opacity(0.9)
-                            .shimmerEffect(isAnimating: showContent)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 20)
                     }
                     .padding(.top, 20)
                     .padding(.bottom, 40)
@@ -239,6 +284,7 @@ struct SubscriptionViewEnhanced: View {
             
             // Enhanced sticky bottom with animations
             VStack(spacing: 0) {
+                // Plan selector — tap to select only, no immediate purchase
                 VStack(spacing: 10) {
                     ForEach(Array(options.enumerated()), id: \.offset) { index, option in
                         EnhancedPricingOption(
@@ -250,17 +296,7 @@ struct SubscriptionViewEnhanced: View {
                             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                                 selectedOption = option
                             }
-                            
-                            // Strong selection feedback for pricing options
-                            HapticFeedbackManager.shared.rhythmicSelection()
-                            
-                            AnalyticsManager.shared.trackSubscriptionOptionSelected(
-                                productId: option.id,
-                                isYearly: option.id == InAppIds.premiumAnnual
-                            )
-                            AnalyticsManager.shared.trackSubscriptionPaymentStarted(productId: option.id)
-                            
-                            viewModel.purchase(productID: option.id)
+                            HapticFeedbackManager.shared.selectionChanged()
                         }
                         .scaleEffect(showContent ? 1 : 0.8)
                         .opacity(showContent ? 1 : 0)
@@ -270,6 +306,59 @@ struct SubscriptionViewEnhanced: View {
                 .padding(.horizontal, 18)
                 .padding(.top, 12)
                 
+                // CTA Button
+                Button(action: {
+                    guard let option = selectedOption else { return }
+                    HapticFeedbackManager.shared.rhythmicSelection()
+                    AnalyticsManager.shared.trackSubscriptionOptionSelected(
+                        productId: option.id,
+                        isYearly: option.id == InAppIds.premiumAnnual
+                    )
+                    AnalyticsManager.shared.trackSubscriptionPaymentStarted(productId: option.id)
+                    FacebookManager.shared.logEvent(.ctaTapped, parameters: ["product_id": option.id])
+                    viewModel.purchase(productID: option.id)
+                }) {
+                    HStack(spacing: 8) {
+                        if viewModel.isPurchasing {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .black))
+                                .scaleEffect(0.8)
+                        }
+                        Text(ctaButtonTitle)
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.black)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
+                    .background(
+                        LinearGradient(
+                            gradient: Gradient(colors: [Color.white, Color(red: 0.9, green: 0.97, blue: 0.95)]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .cornerRadius(14)
+                    .shadow(color: Color.white.opacity(0.4), radius: 8, x: 0, y: 4)
+                    .scaleEffect(pulseSubscribe ? 1.02 : 1.0)
+                    .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: pulseSubscribe)
+                }
+                .padding(.horizontal, 18)
+                .padding(.top, 12)
+                .disabled(selectedOption == nil || viewModel.isPurchasing)
+                .opacity(showContent ? 1 : 0)
+                .scaleEffect(showContent ? 1 : 0.9)
+                .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(1.1), value: showContent)
+                
+                // Billing subtitle
+                if let option = selectedOption {
+                    Text(option.ctaTitle)
+                        .font(.system(size: 12))
+                        .foregroundColor(.white.opacity(0.6))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 24)
+                        .padding(.top, 6)
+                }
+                
                 Button("Restore Purchases") {
                     HapticFeedbackManager.shared.buttonTap()
                     viewModel.restore()
@@ -277,7 +366,7 @@ struct SubscriptionViewEnhanced: View {
                 .font(.system(size: 14))
                 .foregroundColor(.white)
                 .opacity(0.7)
-                .padding(.top, 12)
+                .padding(.top, 10)
                 .padding(.bottom, 24)
                 .disabled(viewModel.isPurchasing)
             }
@@ -535,7 +624,7 @@ struct EnhancedPricingOption: View {
                         
                         if option.title == "Yearly" {
                             HStack(spacing: 4) {
-                                Text("$49.99")
+                                Text("$79.99")
                                     .font(.system(size: 12))
                                     .strikethrough()
                                     .foregroundColor(.white.opacity(0.6))

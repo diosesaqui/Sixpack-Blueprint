@@ -134,6 +134,16 @@ class StoreManager: NSObject, ObservableObject {
             )
             AnalyticsManager.shared.setSubscriptionStatus(true)
             
+            // Log to Facebook
+            let price = Double(truncating: product.price as NSNumber)
+            if product.id == InAppIds.premiumAnnual {
+                // Annual has free trial
+                FacebookManager.shared.logEvent(.trialStarted, parameters: ["product_id": product.id])
+            } else {
+                FacebookManager.shared.logEvent(.purchased)
+                FacebookManager.shared.logPurchase(amount: price, productId: product.id)
+            }
+            
             // Notify success
             NotificationCenter.default.post(name: PurchaseSuccess, object: nil)
             print("✅ Purchase successful: \(product.id)")
