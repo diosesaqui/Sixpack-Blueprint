@@ -154,16 +154,6 @@ struct SubscriptionView: View {
                     cta: "SUBSCRIBE",
                     ctaTitle: "\(product.displayPrice) monthly. Cancel Anytime."
                 )
-            case InAppIds.premiumWeekly:
-                option = SubscriptionOption(
-                    id: product.id,
-                    title: "Weekly",
-                    price: product.displayPrice + " / wk",
-                    billingPeriod: "per week",
-                    savings: nil,
-                    cta: "SUBSCRIBE",
-                    ctaTitle: "\(product.displayPrice) weekly. Cancel Anytime."
-                )
             default:
                 continue
             }
@@ -174,14 +164,13 @@ struct SubscriptionView: View {
         if dynamicOptions.isEmpty {
             return [
                 SubscriptionOption(id: InAppIds.premiumAnnual, title: "Yearly", price: "$1.67 / mo", billingPeriod: "$19.99", savings: "Save 65%", cta: "START FREE TRIAL", ctaTitle: "7-day free trial, then $19.99/year. Cancel Anytime.", freeTrial: true),
-                SubscriptionOption(id: InAppIds.premiumMonthly, title: "Monthly", price: "$4.99 / mo", billingPeriod: "per month", savings: nil, cta: "SUBSCRIBE", ctaTitle: "$4.99 monthly. Cancel Anytime."),
-                SubscriptionOption(id: InAppIds.premiumWeekly, title: "Weekly", price: "$2.99 / wk", billingPeriod: "per week", savings: nil, cta: "SUBSCRIBE", ctaTitle: "$2.99 weekly. Cancel Anytime.")
+                SubscriptionOption(id: InAppIds.premiumMonthly, title: "Monthly", price: "$4.99 / mo", billingPeriod: "per month", savings: nil, cta: "SUBSCRIBE", ctaTitle: "$4.99 monthly. Cancel Anytime.")
             ]
         }
         
-        // Sort: Yearly first, Monthly second, Weekly third
+        // Sort: Yearly first, Monthly second
         return dynamicOptions.sorted { lhs, rhs in
-            let order: [String: Int] = [InAppIds.premiumAnnual: 0, InAppIds.premiumMonthly: 1, InAppIds.premiumWeekly: 2]
+            let order: [String: Int] = [InAppIds.premiumAnnual: 0, InAppIds.premiumMonthly: 1]
             return (order[lhs.id] ?? 99) < (order[rhs.id] ?? 99)
         }
     }
@@ -397,6 +386,26 @@ struct SubscriptionView: View {
                 .padding(.horizontal, 18)
                 .padding(.top, 12)
                 
+                // Benefit checkmarks — social proof near CTA
+                HStack(spacing: 0) {
+                    Spacer()
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(["5-minute daily workouts", "No equipment needed", "Cancel anytime"], id: \.self) { benefit in
+                            HStack(spacing: 8) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                                    .font(.system(size: 14))
+                                Text(benefit)
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(.white.opacity(0.85))
+                            }
+                        }
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal, 18)
+                .padding(.top, 12)
+                
                 // Main CTA Button with urgency
                 Button(action: {
                     guard let option = selectedOption else { return }
@@ -453,8 +462,16 @@ struct SubscriptionView: View {
                 .foregroundColor(.white)
                 .opacity(0.7)
                 .padding(.top, 12)
-                .padding(.bottom, 24)
                 .disabled(viewModel.isPurchasing)
+                
+                // FAQ — removes last-second doubt
+                VStack(spacing: 8) {
+                    FAQRow(question: "When does billing start?", answer: "After your free trial ends. Not before.")
+                    FAQRow(question: "Can I cancel anytime?", answer: "Yes — cancel in 1 tap from Settings.")
+                    FAQRow(question: "Is a credit card required now?", answer: "No charge until your trial is over.")
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 32)
             }
             .background(
                 // Add subtle gradient overlay to separate sticky section

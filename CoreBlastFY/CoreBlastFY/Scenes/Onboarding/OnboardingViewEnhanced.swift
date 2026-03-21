@@ -583,12 +583,28 @@ struct PlanReadyView: View {
     @State private var showContent = false
     @State private var showBullets = false
 
-    let bullets: [(String, String)] = [
-        ("⚡", "5-minute daily workouts — no equipment"),
-        ("📈", "Progressive difficulty that grows with you"),
-        ("🎯", "Exercises targeting your exact weak points"),
-        ("🔔", "Daily reminders to keep you on track")
-    ]
+    // Dynamic personalized bullets using onboarding answers
+    private var personalizedBullets: [(String, String)] {
+        var items: [(String, String)] = []
+        
+        // Goal-specific bullet
+        if selectedGoal.contains("six-pack") || selectedGoal.contains("abs") {
+            items.append(("⚡", "Exercises specifically targeting ab definition"))
+        } else if selectedGoal.contains("flat") || selectedGoal.contains("belly") {
+            items.append(("🔥", "Fat-burning core sequences for a flatter stomach"))
+        } else if selectedGoal.contains("stronger") || selectedGoal.contains("stable") {
+            items.append(("💪", "Deep core training for real strength"))
+        } else {
+            items.append(("🎯", "Workouts built around your goal"))
+        }
+        
+        // Universal benefits
+        items.append(("⏱", "5-minute daily workouts — no gym needed"))
+        items.append(("📈", "Progressive difficulty that grows with you"))
+        items.append(("🔔", "Daily check-ins to keep you consistent"))
+        
+        return items
+    }
 
     var body: some View {
         ZStack {
@@ -625,7 +641,7 @@ struct PlanReadyView: View {
                             .offset(y: showContent ? 0 : 20)
                             .animation(.easeOut(duration: 0.5).delay(0.3), value: showContent)
 
-                        Text("Join 50,000+ people already building their best core.")
+                        Text("Your personalized plan is ready. 50,000+ people are already on their journey.")
                             .font(.system(size: 16))
                             .foregroundColor(.white.opacity(0.6))
                             .multilineTextAlignment(.center)
@@ -636,10 +652,10 @@ struct PlanReadyView: View {
 
                     // Bullets
                     VStack(spacing: 14) {
-                        ForEach(bullets.indices, id: \.self) { i in
+                        ForEach(personalizedBullets.indices, id: \.self) { i in
                             HStack(spacing: 14) {
-                                Text(bullets[i].0).font(.system(size: 20))
-                                Text(bullets[i].1)
+                                Text(personalizedBullets[i].0).font(.system(size: 20))
+                                Text(personalizedBullets[i].1)
                                     .font(.system(size: 15, weight: .medium))
                                     .foregroundColor(.white)
                                 Spacer()
@@ -663,7 +679,7 @@ struct PlanReadyView: View {
                             currentStep += 1
                         }
                     }) {
-                        Text("SEE MY PLAN →")
+                        Text("GET MY FREE PLAN →")
                             .font(.system(size: 18, weight: .bold))
                             .foregroundColor(.black)
                             .frame(maxWidth: .infinity)
@@ -677,11 +693,7 @@ struct PlanReadyView: View {
                     .scaleEffect(showContent ? 1 : 0.9)
                     .animation(.spring(response: 0.5, dampingFraction: 0.75).delay(0.7), value: showContent)
 
-                    Text("No payment needed to see your plan")
-                        .font(.system(size: 13))
-                        .foregroundColor(.white.opacity(0.4))
-                        .opacity(showContent ? 1 : 0)
-                        .animation(.easeOut(duration: 0.4).delay(0.85), value: showContent)
+
                 }
                 .padding(.bottom, 48)
             }

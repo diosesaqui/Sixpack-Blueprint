@@ -22,6 +22,7 @@ struct SubscriptionViewEnhanced: View {
     @State private var animateIcons = false
     @State private var pulseSubscribe = false
     @State private var showOneTimeOffer = false
+    @State private var showDismiss = false
     
     // Dynamic subscription options
     private var options: [SubscriptionOption] {
@@ -56,16 +57,6 @@ struct SubscriptionViewEnhanced: View {
                     cta: "SUBSCRIBE",
                     ctaTitle: "\(product.displayPrice) monthly. Cancel Anytime."
                 )
-            case InAppIds.premiumWeekly:
-                option = SubscriptionOption(
-                    id: product.id,
-                    title: "Weekly",
-                    price: product.displayPrice + " / wk",
-                    billingPeriod: "per week",
-                    savings: nil,
-                    cta: "SUBSCRIBE",
-                    ctaTitle: "\(product.displayPrice) weekly. Cancel Anytime."
-                )
             default:
                 continue
             }
@@ -75,14 +66,13 @@ struct SubscriptionViewEnhanced: View {
         if dynamicOptions.isEmpty {
             return [
                 SubscriptionOption(id: InAppIds.premiumAnnual, title: "Yearly", price: "$1.67 / mo", billingPeriod: "$19.99", savings: "Save 65%", cta: "START FREE TRIAL", ctaTitle: "7-day free trial, then $19.99/year. Cancel Anytime.", freeTrial: true),
-                SubscriptionOption(id: InAppIds.premiumMonthly, title: "Monthly", price: "$4.99 / mo", billingPeriod: "per month", savings: nil, cta: "SUBSCRIBE", ctaTitle: "$4.99 monthly. Cancel Anytime."),
-                SubscriptionOption(id: InAppIds.premiumWeekly, title: "Weekly", price: "$2.99 / wk", billingPeriod: "per week", savings: nil, cta: "SUBSCRIBE", ctaTitle: "$2.99 weekly. Cancel Anytime.")
+                SubscriptionOption(id: InAppIds.premiumMonthly, title: "Monthly", price: "$4.99 / mo", billingPeriod: "per month", savings: nil, cta: "SUBSCRIBE", ctaTitle: "$4.99 monthly. Cancel Anytime.")
             ]
         }
         
-        // Sort: Yearly first, Monthly second, Weekly third
+        // Sort: Yearly first, Monthly second
         return dynamicOptions.sorted { lhs, rhs in
-            let order: [String: Int] = [InAppIds.premiumAnnual: 0, InAppIds.premiumMonthly: 1, InAppIds.premiumWeekly: 2]
+            let order: [String: Int] = [InAppIds.premiumAnnual: 0, InAppIds.premiumMonthly: 1]
             return (order[lhs.id] ?? 99) < (order[rhs.id] ?? 99)
         }
     }
@@ -90,7 +80,7 @@ struct SubscriptionViewEnhanced: View {
     // CTA button label based on selected plan
     private var ctaButtonTitle: String {
         guard let option = selectedOption else { return "Get Started" }
-        if option.freeTrial { return "Start Free Trial" }
+        if option.freeTrial { return "Try Free for 14 Days" }
         switch option.id {
         case InAppIds.premiumAnnual:  return "Get Yearly Access"
         case InAppIds.premiumMonthly: return "Get Monthly Access"
@@ -152,6 +142,10 @@ struct SubscriptionViewEnhanced: View {
             withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true).delay(1.0)) {
                 pulseSubscribe = true
             }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                withAnimation(.easeIn(duration: 0.3)) { showDismiss = true }
+            }
         }
         .alert("Purchase Error", isPresented: $viewModel.showError) {
             Button("OK") {
@@ -183,7 +177,8 @@ struct SubscriptionViewEnhanced: View {
                             .clipShape(Circle())
                     }
                     .scaleEffect(showContent ? 1 : 0)
-                    .opacity(showContent ? 1 : 0)
+                    .opacity(showDismiss ? 1 : 0)
+                    .disabled(!showDismiss)
                     .animation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.5), value: showContent)
                     
                     Spacer()
@@ -306,6 +301,28 @@ struct SubscriptionViewEnhanced: View {
                 .padding(.horizontal, 18)
                 .padding(.top, 12)
                 
+                // Benefit checkmarks — social proof near CTA
+                HStack(spacing: 0) {
+                    Spacer()
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(["5-minute daily workouts", "No equipment needed", "Cancel anytime"], id: \.self) { benefit in
+                            HStack(spacing: 8) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                                    .font(.system(size: 14))
+                                Text(benefit)
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(.white.opacity(0.85))
+                            }
+                        }
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal, 18)
+                .padding(.top, 12)
+                .opacity(showContent ? 1 : 0)
+                .animation(.easeOut(duration: 0.4).delay(1.0), value: showContent)
+                
                 // CTA Button
                 Button(action: {
                     guard let option = selectedOption else { return }
@@ -367,8 +384,18 @@ struct SubscriptionViewEnhanced: View {
                 .foregroundColor(.white)
                 .opacity(0.7)
                 .padding(.top, 10)
-                .padding(.bottom, 24)
                 .disabled(viewModel.isPurchasing)
+                
+                // FAQ — removes last-second doubt
+                VStack(spacing: 8) {
+                    FAQRow(question: "When does billing start?", answer: "After your free trial ends. Not before.")
+                    FAQRow(question: "Can I cancel anytime?", answer: "Yes — cancel in 1 tap from Settings.")
+                    FAQRow(question: "Is a credit card required now?", answer: "No charge until your trial is over.")
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 32)
+                .opacity(showContent ? 1 : 0)
+                .animation(.easeOut(duration: 0.4).delay(1.2), value: showContent)
             }
             .background(
                 LinearGradient(
@@ -718,5 +745,37 @@ struct LoadingOverlay: View {
         .onAppear {
             isAnimating = true
         }
+    }
+}
+
+struct FAQRow: View {
+    let question: String
+    let answer: String
+    @State private var expanded = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Button(action: { withAnimation(.spring(response: 0.3)) { expanded.toggle() } }) {
+                HStack {
+                    Text(question)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.7))
+                    Spacer()
+                    Image(systemName: expanded ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 10))
+                        .foregroundColor(.white.opacity(0.4))
+                }
+            }
+            if expanded {
+                Text(answer)
+                    .font(.system(size: 12))
+                    .foregroundColor(.white.opacity(0.5))
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .padding(.vertical, 6)
+        .padding(.horizontal, 12)
+        .background(Color.white.opacity(0.05))
+        .cornerRadius(8)
     }
 }
