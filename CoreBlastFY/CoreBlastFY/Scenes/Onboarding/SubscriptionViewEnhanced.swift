@@ -21,6 +21,7 @@ struct SubscriptionViewEnhanced: View {
     @State private var animateBenefits = false
     @State private var animateIcons = false
     @State private var pulseSubscribe = false
+    @State private var showOneTimeOffer = false
     
     // Dynamic subscription options
     private var options: [SubscriptionOption] {
@@ -32,15 +33,18 @@ struct SubscriptionViewEnhanced: View {
             switch product.id {
             case InAppIds.premiumAnnual:
                 let monthlyPrice = product.price / 12
+                let hasFreeTrial = product.subscription?.introductoryOffer != nil
                 option = SubscriptionOption(
                     id: product.id,
                     title: "Yearly",
                     price: monthlyPrice.formatted(.currency(code: product.priceFormatStyle.currencyCode)) + " / mo",
                     billingPeriod: product.displayPrice,
                     savings: "Save 65%",
-                    cta: "SUBSCRIBE",
-                    ctaTitle: "\(product.displayPrice) billed annually. Cancel Anytime.",
-                    freeTrial: false
+                    cta: hasFreeTrial ? "START FREE TRIAL" : "SUBSCRIBE",
+                    ctaTitle: hasFreeTrial
+                        ? "7-day free trial, then \(product.displayPrice)/year. Cancel Anytime."
+                        : "\(product.displayPrice) billed annually. Cancel Anytime.",
+                    freeTrial: hasFreeTrial
                 )
             case InAppIds.premiumMonthly:
                 option = SubscriptionOption(
@@ -52,6 +56,16 @@ struct SubscriptionViewEnhanced: View {
                     cta: "SUBSCRIBE",
                     ctaTitle: "\(product.displayPrice) monthly. Cancel Anytime."
                 )
+            case InAppIds.premiumWeekly:
+                option = SubscriptionOption(
+                    id: product.id,
+                    title: "Weekly",
+                    price: product.displayPrice + " / wk",
+                    billingPeriod: "per week",
+                    savings: nil,
+                    cta: "SUBSCRIBE",
+                    ctaTitle: "\(product.displayPrice) weekly. Cancel Anytime."
+                )
             default:
                 continue
             }
@@ -60,15 +74,16 @@ struct SubscriptionViewEnhanced: View {
         
         if dynamicOptions.isEmpty {
             return [
-                SubscriptionOption(id: InAppIds.premiumAnnual, title: "Yearly", price: "$1.67 / mo", billingPeriod: "$19.99", savings: "Save 65%", cta: "SUBSCRIBE", ctaTitle: "$19.99 billed annually. Cancel Anytime.", freeTrial: false),
-                SubscriptionOption(id: InAppIds.premiumMonthly, title: "Monthly", price: "$4.99 / mo", billingPeriod: "per month", savings: nil, cta: "SUBSCRIBE", ctaTitle: "$4.99 monthly. Cancel Anytime.")
+                SubscriptionOption(id: InAppIds.premiumAnnual, title: "Yearly", price: "$1.67 / mo", billingPeriod: "$19.99", savings: "Save 65%", cta: "START FREE TRIAL", ctaTitle: "7-day free trial, then $19.99/year. Cancel Anytime.", freeTrial: true),
+                SubscriptionOption(id: InAppIds.premiumMonthly, title: "Monthly", price: "$4.99 / mo", billingPeriod: "per month", savings: nil, cta: "SUBSCRIBE", ctaTitle: "$4.99 monthly. Cancel Anytime."),
+                SubscriptionOption(id: InAppIds.premiumWeekly, title: "Weekly", price: "$2.99 / wk", billingPeriod: "per week", savings: nil, cta: "SUBSCRIBE", ctaTitle: "$2.99 weekly. Cancel Anytime.")
             ]
         }
         
+        // Sort: Yearly first, Monthly second, Weekly third
         return dynamicOptions.sorted { lhs, rhs in
-            if lhs.id == InAppIds.premiumAnnual { return true }
-            if rhs.id == InAppIds.premiumAnnual { return false }
-            return false
+            let order: [String: Int] = [InAppIds.premiumAnnual: 0, InAppIds.premiumMonthly: 1, InAppIds.premiumWeekly: 2]
+            return (order[lhs.id] ?? 99) < (order[rhs.id] ?? 99)
         }
     }
     
@@ -81,6 +96,21 @@ struct SubscriptionViewEnhanced: View {
        
             if viewModel.isPurchasing {
                 LoadingOverlay()
+            }
+            
+            // One-Time Offer Modal
+            if showOneTimeOffer {
+                OneTimeOfferModal(
+                    isPresented: $showOneTimeOffer,
+                    onPurchase: { option in
+                        AnalyticsManager.shared.trackOneTimeOfferAccepted()
+                        viewModel.purchase(productID: option.id)
+                    },
+                    onDismiss: {
+                        AnalyticsManager.shared.trackOneTimeOfferDismissed()
+                        callBack?(false)
+                    }
+                )
             }
         }
         .onAppear {
@@ -129,7 +159,8 @@ struct SubscriptionViewEnhanced: View {
                 HStack {
                     Button(action: {
                         HapticFeedbackManager.shared.impact(.medium)
-                        callBack?(false)
+                        AnalyticsManager.shared.trackOneTimeOfferShown()
+                        showOneTimeOffer = true
                     }) {
                         Image(systemName: "xmark")
                             .font(.system(size: 18, weight: .medium))
@@ -226,11 +257,12 @@ struct SubscriptionViewEnhanced: View {
                         // Animated star rating
                         AnimatedStarRating()
                         
-                        Text("4.8 star rating")
+                        Text("Join 50,000+ people building their best core")
                             .font(.system(size: 16))
                             .foregroundColor(.white)
                             .opacity(0.9)
-                            .shimmerEffect(isAnimating: showContent)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 20)
                     }
                     .padding(.top, 20)
                     .padding(.bottom, 40)
@@ -535,7 +567,7 @@ struct EnhancedPricingOption: View {
                         
                         if option.title == "Yearly" {
                             HStack(spacing: 4) {
-                                Text("$49.99")
+                                Text("$79.99")
                                     .font(.system(size: 12))
                                     .strikethrough()
                                     .foregroundColor(.white.opacity(0.6))
