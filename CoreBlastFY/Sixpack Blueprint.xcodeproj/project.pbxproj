@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		1560A0EB3CBF09B386E3C2E2 /* VideoManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9AC9C866ED27966F9132464 /* VideoManager.swift */; };
 		41C578B2F45C9895B20882FF /* FirebaseVideoRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1017E4E0B92447510C37914E /* FirebaseVideoRepository.swift */; };
+		450902052F6F58C9008704F9 /* FacebookBasics in Frameworks */ = {isa = PBXBuildFile; productRef = 450902042F6F58C9008704F9 /* FacebookBasics */; };
+		450902072F6F58C9008704F9 /* FacebookCore in Frameworks */ = {isa = PBXBuildFile; productRef = 450902062F6F58C9008704F9 /* FacebookCore */; };
 		4529662B2CB906F5006AE282 /* SubscriptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4529662A2CB906F5006AE282 /* SubscriptionView.swift */; };
 		4529662E2CB90B74006AE282 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4529662D2CB90B74006AE282 /* OnboardingView.swift */; };
 		452966302CB90D2F006AE282 /* HostingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4529662F2CB90D2F006AE282 /* HostingViewController.swift */; };
@@ -442,8 +444,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				450902052F6F58C9008704F9 /* FacebookBasics in Frameworks */,
 				45BC74942EDAAFBC003AC964 /* FirebaseAnalytics in Frameworks */,
 				7A8CBAB723E9113100D0D6BD /* StoreKit.framework in Frameworks */,
+				450902072F6F58C9008704F9 /* FacebookCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1115,6 +1119,7 @@
 			mainGroup = 7A8CBA8723E9109800D0D6BD;
 			packageReferences = (
 				45BC74922EDAAFBC003AC964 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				450902032F6F58C9008704F9 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 7A8CBA9123E9109800D0D6BD /* Products */;
@@ -1628,6 +1633,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		450902032F6F58C9008704F9 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/facebook/facebook-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 14.1.0;
+			};
+		};
 		45BC74922EDAAFBC003AC964 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
@@ -1639,6 +1652,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		450902042F6F58C9008704F9 /* FacebookBasics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 450902032F6F58C9008704F9 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */;
+			productName = FacebookBasics;
+		};
+		450902062F6F58C9008704F9 /* FacebookCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 450902032F6F58C9008704F9 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */;
+			productName = FacebookCore;
+		};
 		45BC74932EDAAFBC003AC964 /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 45BC74922EDAAFBC003AC964 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
