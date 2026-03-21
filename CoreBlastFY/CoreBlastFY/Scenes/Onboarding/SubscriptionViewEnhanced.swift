@@ -128,6 +128,7 @@ struct SubscriptionViewEnhanced: View {
         .onAppear {
             selectedOption = options.first
             AnalyticsManager.shared.trackSubscriptionViewShown(trigger: "onboarding")
+            FacebookManager.shared.logEvent(.paywallShown)
             
             viewModel.callBack = { success in
                 if success {
@@ -314,6 +315,7 @@ struct SubscriptionViewEnhanced: View {
                         isYearly: option.id == InAppIds.premiumAnnual
                     )
                     AnalyticsManager.shared.trackSubscriptionPaymentStarted(productId: option.id)
+                    FacebookManager.shared.logEvent(.ctaTapped, parameters: ["product_id": option.id])
                     viewModel.purchase(productID: option.id)
                 }) {
                     HStack(spacing: 8) {

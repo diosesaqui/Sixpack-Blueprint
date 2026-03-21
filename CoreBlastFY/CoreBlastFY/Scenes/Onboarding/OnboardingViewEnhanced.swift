@@ -199,6 +199,10 @@ struct PainHookView: View {
                         ) {
                             selectedIndex = i
                             selectedStruggle = options[i].text
+                            // Request ATT permission on first onboarding interaction
+                            if !FacebookManager.shared.hasRequestedATT {
+                                FacebookManager.shared.requestATTPermission()
+                            }
                             HapticFeedbackManager.shared.selectionChanged()
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.28) {
                                 withAnimation { currentStep += 1 }

@@ -34,6 +34,7 @@ class OnboardingManager {
         UserDefaults.standard.synchronize()
         
         print("✅ Onboarding marked as completed - Version: \(currentOnboardingVersion)")
+        FacebookManager.shared.logEvent(.onboardingComplete)
     }
     
     /// Reset onboarding (useful for testing or if user wants to see onboarding again)

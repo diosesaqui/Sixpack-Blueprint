@@ -66,6 +66,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UNUserNotificationCente
         
         // Track app launch in Firebase Analytics
         AnalyticsManager.shared.trackAppLaunch()
+        FacebookManager.shared.logEvent(.appLaunched)
         
         // Initialize StoreKit payment observer for legacy support
         SKPaymentQueue.default().add(StoreObserver.shared)
