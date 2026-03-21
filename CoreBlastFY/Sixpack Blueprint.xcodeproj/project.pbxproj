@@ -11,6 +11,7 @@
 		41C578B2F45C9895B20882FF /* FirebaseVideoRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1017E4E0B92447510C37914E /* FirebaseVideoRepository.swift */; };
 		450902052F6F58C9008704F9 /* FacebookBasics in Frameworks */ = {isa = PBXBuildFile; productRef = 450902042F6F58C9008704F9 /* FacebookBasics */; };
 		450902072F6F58C9008704F9 /* FacebookCore in Frameworks */ = {isa = PBXBuildFile; productRef = 450902062F6F58C9008704F9 /* FacebookCore */; };
+		450902092F6F59E2008704F9 /* FacebookManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 450902082F6F59E2008704F9 /* FacebookManager.swift */; };
 		4529662B2CB906F5006AE282 /* SubscriptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4529662A2CB906F5006AE282 /* SubscriptionView.swift */; };
 		4529662E2CB90B74006AE282 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4529662D2CB90B74006AE282 /* OnboardingView.swift */; };
 		452966302CB90D2F006AE282 /* HostingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4529662F2CB90D2F006AE282 /* HostingViewController.swift */; };
@@ -230,6 +231,7 @@
 /* Begin PBXFileReference section */
 		1017E4E0B92447510C37914E /* FirebaseVideoRepository.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FirebaseVideoRepository.swift; path = Video/FirebaseVideoRepository.swift; sourceTree = "<group>"; };
 		11661227D01F9F530A49944A /* VideoRepository.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VideoRepository.swift; path = Video/VideoRepository.swift; sourceTree = "<group>"; };
+		450902082F6F59E2008704F9 /* FacebookManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FacebookManager.swift; sourceTree = "<group>"; };
 		4529662A2CB906F5006AE282 /* SubscriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionView.swift; sourceTree = "<group>"; };
 		4529662D2CB90B74006AE282 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		4529662F2CB90D2F006AE282 /* HostingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostingViewController.swift; sourceTree = "<group>"; };
@@ -478,6 +480,7 @@
 			isa = PBXGroup;
 			children = (
 				45BC748F2EDAAD6F003AC964 /* AnalyticsManager.swift */,
+				450902082F6F59E2008704F9 /* FacebookManager.swift */,
 			);
 			path = Analytics;
 			sourceTree = "<group>";
@@ -1190,6 +1193,7 @@
 				7A0D67742481D2EF00A6E766 /* Reachability.swift in Sources */,
 				7AC36D09244E2204002764F5 /* AppFullscreenDescriptionCell.swift in Sources */,
 				7A8CBAE023E9122D00D0D6BD /* SnapLayout.swift in Sources */,
+				450902092F6F59E2008704F9 /* FacebookManager.swift in Sources */,
 				7A8CBB2D23E912C700D0D6BD /* OnboardingPageViewController.swift in Sources */,
 				7A8CBADE23E9122D00D0D6BD /* Fonts.swift in Sources */,
 				7AC2C6902445363700B3BFC8 /* NotificationsRouter.swift in Sources */,
@@ -1509,7 +1513,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 64;
+				CURRENT_PROJECT_VERSION = 65;
 				DEVELOPMENT_TEAM = 652R6A63L8;
 				INFOPLIST_FILE = CoreBlastFY/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Abs Workout: Six Pack Trainer";
@@ -1519,7 +1523,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0.15;
+				MARKETING_VERSION = 2.0.16;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Franchiz.CoreBlast;
 				PRODUCT_NAME = "Sixpack Blueprint";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1535,7 +1539,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 64;
+				CURRENT_PROJECT_VERSION = 65;
 				DEVELOPMENT_TEAM = 652R6A63L8;
 				INFOPLIST_FILE = CoreBlastFY/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Abs Workout: Six Pack Trainer";
@@ -1545,7 +1549,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0.15;
+				MARKETING_VERSION = 2.0.16;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Franchiz.CoreBlast;
 				PRODUCT_NAME = "Sixpack Blueprint";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
