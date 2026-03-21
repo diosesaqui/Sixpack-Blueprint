@@ -87,6 +87,18 @@ struct SubscriptionViewEnhanced: View {
         }
     }
     
+    // CTA button label based on selected plan
+    private var ctaButtonTitle: String {
+        guard let option = selectedOption else { return "Get Started" }
+        if option.freeTrial { return "Start Free Trial" }
+        switch option.id {
+        case InAppIds.premiumAnnual:  return "Get Yearly Access"
+        case InAppIds.premiumMonthly: return "Get Monthly Access"
+        case InAppIds.premiumWeekly:  return "Get Weekly Access"
+        default:                      return "Subscribe Now"
+        }
+    }
+    
     var body: some View {
         ZStack {
             // Animated gradient background
@@ -271,6 +283,7 @@ struct SubscriptionViewEnhanced: View {
             
             // Enhanced sticky bottom with animations
             VStack(spacing: 0) {
+                // Plan selector — tap to select only, no immediate purchase
                 VStack(spacing: 10) {
                     ForEach(Array(options.enumerated()), id: \.offset) { index, option in
                         EnhancedPricingOption(
@@ -282,17 +295,7 @@ struct SubscriptionViewEnhanced: View {
                             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                                 selectedOption = option
                             }
-                            
-                            // Strong selection feedback for pricing options
-                            HapticFeedbackManager.shared.rhythmicSelection()
-                            
-                            AnalyticsManager.shared.trackSubscriptionOptionSelected(
-                                productId: option.id,
-                                isYearly: option.id == InAppIds.premiumAnnual
-                            )
-                            AnalyticsManager.shared.trackSubscriptionPaymentStarted(productId: option.id)
-                            
-                            viewModel.purchase(productID: option.id)
+                            HapticFeedbackManager.shared.selectionChanged()
                         }
                         .scaleEffect(showContent ? 1 : 0.8)
                         .opacity(showContent ? 1 : 0)
@@ -302,6 +305,58 @@ struct SubscriptionViewEnhanced: View {
                 .padding(.horizontal, 18)
                 .padding(.top, 12)
                 
+                // CTA Button
+                Button(action: {
+                    guard let option = selectedOption else { return }
+                    HapticFeedbackManager.shared.rhythmicSelection()
+                    AnalyticsManager.shared.trackSubscriptionOptionSelected(
+                        productId: option.id,
+                        isYearly: option.id == InAppIds.premiumAnnual
+                    )
+                    AnalyticsManager.shared.trackSubscriptionPaymentStarted(productId: option.id)
+                    viewModel.purchase(productID: option.id)
+                }) {
+                    HStack(spacing: 8) {
+                        if viewModel.isPurchasing {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .black))
+                                .scaleEffect(0.8)
+                        }
+                        Text(ctaButtonTitle)
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.black)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
+                    .background(
+                        LinearGradient(
+                            gradient: Gradient(colors: [Color.white, Color(red: 0.9, green: 0.97, blue: 0.95)]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .cornerRadius(14)
+                    .shadow(color: Color.white.opacity(0.4), radius: 8, x: 0, y: 4)
+                    .scaleEffect(pulseSubscribe ? 1.02 : 1.0)
+                    .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: pulseSubscribe)
+                }
+                .padding(.horizontal, 18)
+                .padding(.top, 12)
+                .disabled(selectedOption == nil || viewModel.isPurchasing)
+                .opacity(showContent ? 1 : 0)
+                .scaleEffect(showContent ? 1 : 0.9)
+                .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(1.1), value: showContent)
+                
+                // Billing subtitle
+                if let option = selectedOption {
+                    Text(option.ctaTitle)
+                        .font(.system(size: 12))
+                        .foregroundColor(.white.opacity(0.6))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 24)
+                        .padding(.top, 6)
+                }
+                
                 Button("Restore Purchases") {
                     HapticFeedbackManager.shared.buttonTap()
                     viewModel.restore()
@@ -309,7 +364,7 @@ struct SubscriptionViewEnhanced: View {
                 .font(.system(size: 14))
                 .foregroundColor(.white)
                 .opacity(0.7)
-                .padding(.top, 12)
+                .padding(.top, 10)
                 .padding(.bottom, 24)
                 .disabled(viewModel.isPurchasing)
             }
