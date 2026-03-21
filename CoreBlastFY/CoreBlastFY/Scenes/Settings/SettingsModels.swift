@@ -40,7 +40,7 @@ enum Settings {
         //.about,
 //        .thirtyDayChallenge,
         .programOverview,
-        .exercises,
+       // .exercises,
         //.customWorkout,
         .membership,
         .notifications,

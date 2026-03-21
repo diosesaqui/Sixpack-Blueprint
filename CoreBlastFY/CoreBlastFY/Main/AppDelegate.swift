@@ -62,6 +62,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 sendPointDecrementNotification()
             }
         }
+        
+        // Prefetch videos in background
+        DispatchQueue.global(qos: .background).async {
+            VideoManager.shared.prefetchAllVideos()
+        }
     }
     
     func applicationWillTerminate(_ application: UIApplication) {

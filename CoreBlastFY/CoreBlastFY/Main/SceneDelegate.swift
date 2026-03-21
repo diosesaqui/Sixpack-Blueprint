@@ -93,11 +93,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UNUserNotificationCente
                 #endif
                 
                 if !OnboardingManager.hasCompletedOnboarding {
-                    let onboardingView = HostingViewController(view: OnboardingView())
+                    // Use enhanced onboarding with animations and haptics
+                    let onboardingView = HostingViewController(view: OnboardingViewEnhanced())
                     self.window!.rootViewController = onboardingView
                     self.window!.makeKeyAndVisible()
                     
-                    print("📱 Showing onboarding - Fresh install: \(OnboardingManager.isFreshInstall)")
+                    print("📱 Showing enhanced onboarding - Fresh install: \(OnboardingManager.isFreshInstall)")
                     
                 } else {
                     // Check if we need to show subscription on 2nd or 3rd app launch

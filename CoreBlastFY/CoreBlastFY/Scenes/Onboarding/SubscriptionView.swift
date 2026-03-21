@@ -270,13 +270,13 @@ struct SubscriptionView: View {
                 VStack(spacing: 0) {
                     // Main Title and Value Proposition
                     VStack(spacing: 12) {
-                        Text("Unlock Your Core's\nFull Potential.")
+                        Text("Get Visible Abs in 5\nMinutes a Day")
                             .font(.system(size: 32, weight: .bold))
                             .foregroundColor(.white)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 30)
                         
-                        Text("Only $2.50 per month billed yearly.\nThat's 50x cheaper than a trainer.")
+                        Text("Daily workouts build momentum—most users see results within 2–4 weeks.")
                             .font(.system(size: 18))
                             .foregroundColor(.white.opacity(0.9))
                             .multilineTextAlignment(.center)
@@ -378,21 +378,61 @@ struct SubscriptionView: View {
                             isSelected: selectedOption?.id == option.id,
                             isPopular: isPopular
                         ) {
-                            // Directly start purchase process when option is tapped
+                            // Select the option when tapped
                             selectedOption = option
-                            
-                            // Track subscription option selection and payment started
-                            AnalyticsManager.shared.trackSubscriptionOptionSelected(
-                                productId: option.id,
-                                isYearly: option.id == InAppIds.premiumAnnual
-                            )
-                            AnalyticsManager.shared.trackSubscriptionPaymentStarted(productId: option.id)
-                            viewModel.purchase(productID: option.id)
                         }
                     }
                 }
                 .padding(.horizontal, 18)
                 .padding(.top, 12)
+                
+                // Main CTA Button with urgency
+                Button(action: {
+                    guard let option = selectedOption else { return }
+                    
+                    // Track subscription option selection and payment started
+                    AnalyticsManager.shared.trackSubscriptionOptionSelected(
+                        productId: option.id,
+                        isYearly: option.id == InAppIds.premiumAnnual
+                    )
+                    AnalyticsManager.shared.trackSubscriptionPaymentStarted(productId: option.id)
+                    viewModel.purchase(productID: option.id)
+                }) {
+                    VStack(spacing: 6) {
+                        HStack {
+                            Text("🔥 CLAIM YOUR TRANSFORMATION")
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundColor(.black)
+                            
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(.black)
+                        }
+                        
+                        Text("Start Your 6-12 Week Journey Today")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(.black.opacity(0.8))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                Color.yellow.opacity(0.9),
+                                Color.orange.opacity(0.8)
+                            ]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .cornerRadius(14)
+                    .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
+                    .scaleEffect(viewModel.isPurchasing ? 0.95 : 1.0)
+                    .animation(.easeInOut(duration: 0.1), value: viewModel.isPurchasing)
+                }
+                .padding(.horizontal, 18)
+                .padding(.top, 15)
+                .disabled(selectedOption == nil || viewModel.isPurchasing)
                 
                 // Restore Purchases - compact
                 Button("Restore Purchases") {
@@ -614,10 +654,6 @@ struct PricingOptionView: View {
                             .font(.system(size: 11, weight: .medium))
                             .foregroundColor(.green)
                     }
-                    
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 12))
-                        .foregroundColor(.white.opacity(0.6))
                 }
             }
             .padding(.horizontal, 14)

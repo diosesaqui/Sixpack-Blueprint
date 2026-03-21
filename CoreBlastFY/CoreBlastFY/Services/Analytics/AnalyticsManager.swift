@@ -49,6 +49,58 @@ class AnalyticsManager {
         ])
     }
     
+    // MARK: - Personalization Events
+    
+    func trackGoalSelected(goal: String) {
+        Analytics.logEvent("goal_selected", parameters: [
+            "selected_goal": goal,
+            "funnel_step": "goal_selection"
+        ])
+    }
+    
+    func trackBodyTypeSelected(bodyType: String) {
+        Analytics.logEvent("body_type_selected", parameters: [
+            "selected_body_type": bodyType,
+            "funnel_step": "body_type_selection"
+        ])
+    }
+    
+    func trackTrainingTimeSelected(trainingTime: String) {
+        Analytics.logEvent("training_time_selected", parameters: [
+            "selected_training_time": trainingTime,
+            "funnel_step": "training_time_selection"
+        ])
+    }
+    
+    func trackStruggleSelected(struggle: String) {
+        Analytics.logEvent("struggle_selected", parameters: [
+            "selected_struggle": struggle,
+            "funnel_step": "struggle_selection"
+        ])
+    }
+    
+    func trackPersonalizationComplete(goal: String, bodyType: String, trainingTime: String, struggle: String) {
+        Analytics.logEvent("personalization_complete", parameters: [
+            "goal": goal,
+            "body_type": bodyType,
+            "training_time": trainingTime,
+            "struggle": struggle,
+            "funnel_step": "personalization_complete"
+        ])
+    }
+    
+    func trackPreviewWorkoutShown() {
+        Analytics.logEvent("preview_workout_shown", parameters: [
+            "funnel_step": "preview_shown"
+        ])
+    }
+    
+    func trackPreviewWorkoutSkipped() {
+        Analytics.logEvent("preview_workout_skipped", parameters: [
+            "funnel_step": "preview_skipped"
+        ])
+    }
+    
     // MARK: - Workout Events
     
     func trackWorkoutStarted(workoutType: String, exercises: Int) {

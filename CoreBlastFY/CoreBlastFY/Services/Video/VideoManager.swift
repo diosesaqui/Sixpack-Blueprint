@@ -12,7 +12,7 @@ import UIKit
 final class VideoManager: ObservableObject {
     static let shared = VideoManager()
     
-    private let firebaseRepository: VideoRepository
+    //private let firebaseRepository: VideoRepository
     private let localRepository: VideoRepository
     private let cacheManager = VideoCacheManager.shared
     private let networkMonitor = NetworkMonitor.shared
@@ -43,33 +43,34 @@ final class VideoManager: ObservableObject {
     }
     
     private init() {
-        self.firebaseRepository = FirebaseVideoRepository()
+       // self.firebaseRepository = FirebaseVideoRepository()
         self.localRepository = LocalVideoRepository()
     }
     
     func prefetchAllVideos() {
-        guard networkMonitor.shouldDownloadVideo() else {
-            print("Network conditions not suitable for video download")
-            return
-        }
-        
-        isLoadingVideos = true
-        
-        firebaseRepository.getAllVideoMetadata()
-            .receive(on: DispatchQueue.main)
-            .sink(
-                receiveCompletion: { [weak self] completion in
-                    self?.isLoadingVideos = false
-                    if case .failure(let error) = completion {
-                        print("Failed to fetch video metadata: \(error)")
-                        self?.loadLocalVideosAsFallback()
-                    }
-                },
-                receiveValue: { [weak self] metadataList in
-                    self?.processVideoMetadata(metadataList)
-                }
-            )
-            .store(in: &cancellables)
+        // TO DO uncomment when videos are uploaded rwrw
+//        guard networkMonitor.shouldDownloadVideo() else {
+//            print("Network conditions not suitable for video download")
+//            return
+//        }
+//        
+//        isLoadingVideos = true
+//        
+//        firebaseRepository.getAllVideoMetadata()
+//            .receive(on: DispatchQueue.main)
+//            .sink(
+//                receiveCompletion: { [weak self] completion in
+//                    self?.isLoadingVideos = false
+//                    if case .failure(let error) = completion {
+//                        print("Failed to fetch video metadata: \(error)")
+                        self.loadLocalVideosAsFallback()
+//                    }
+//                },
+//                receiveValue: { [weak self] metadataList in
+//                    self?.processVideoMetadata(metadataList)
+//                }
+//            )
+//            .store(in: &cancellables)
     }
     
     private func processVideoMetadata(_ metadataList: [VideoMetadata]) {
@@ -80,37 +81,37 @@ final class VideoManager: ObservableObject {
                 exerciseName: metadata.exerciseName,
                 currentVersion: metadata.version
             ) {
-                prefetchVideo(metadata: metadata)
+               // prefetchVideo(metadata: metadata)
             }
         }
     }
     
-    private func prefetchVideo(metadata: VideoMetadata) {
-        guard networkMonitor.shouldDownloadVideo() else { return }
-        guard !activeDownloads.contains(metadata.exerciseName) else { return }
-        
-        activeDownloads.insert(metadata.exerciseName)
-        
-        firebaseRepository.downloadVideo(from: metadata.downloadURL)
-            .receive(on: downloadQueue)
-            .sink(
-                receiveCompletion: { [weak self] completion in
-                    self?.activeDownloads.remove(metadata.exerciseName)
-                    if case .failure(let error) = completion {
-                        print("Failed to prefetch video for \(metadata.exerciseName): \(error)")
-                    }
-                },
-                receiveValue: { [weak self] data in
-                    do {
-                        _ = try self?.cacheManager.saveVideo(data: data, metadata: metadata)
-                        print("Successfully cached video: \(metadata.exerciseName) v\(metadata.version)")
-                    } catch {
-                        print("Failed to cache video: \(error)")
-                    }
-                }
-            )
-            .store(in: &cancellables)
-    }
+//    private func prefetchVideo(metadata: VideoMetadata) {
+//        guard networkMonitor.shouldDownloadVideo() else { return }
+//        guard !activeDownloads.contains(metadata.exerciseName) else { return }
+//        
+//        activeDownloads.insert(metadata.exerciseName)
+//        
+//        firebaseRepository.downloadVideo(from: metadata.downloadURL)
+//            .receive(on: downloadQueue)
+//            .sink(
+//                receiveCompletion: { [weak self] completion in
+//                    self?.activeDownloads.remove(metadata.exerciseName)
+//                    if case .failure(let error) = completion {
+//                        print("Failed to prefetch video for \(metadata.exerciseName): \(error)")
+//                    }
+//                },
+//                receiveValue: { [weak self] data in
+//                    do {
+//                        _ = try self?.cacheManager.saveVideo(data: data, metadata: metadata)
+//                        print("Successfully cached video: \(metadata.exerciseName) v\(metadata.version)")
+//                    } catch {
+//                        print("Failed to cache video: \(error)")
+//                    }
+//                }
+//            )
+//            .store(in: &cancellables)
+//    }
     
     func getVideoURL(for exerciseName: String, completion: @escaping (Result<URL, Error>) -> Void) {
         // First check cache
@@ -121,45 +122,45 @@ final class VideoManager: ObservableObject {
         }
         
         // If not in cache, try to download from Firebase
-        if networkMonitor.isConnected {
-            fetchAndCacheVideo(exerciseName: exerciseName, completion: completion)
-        } else {
+//        if networkMonitor.isConnected {
+//          //  fetchAndCacheVideo(exerciseName: exerciseName, completion: completion)
+//        } else {
             // Fall back to local bundled video
             loadLocalVideo(exerciseName: exerciseName, completion: completion)
-        }
+      //  }
     }
     
-    private func fetchAndCacheVideo(exerciseName: String, completion: @escaping (Result<URL, Error>) -> Void) {
-        firebaseRepository.fetchVideoMetadata(for: exerciseName)
-            .flatMap { [weak self] metadata -> AnyPublisher<(VideoMetadata, Data), Error> in
-                guard let self = self, let metadata = metadata else {
-                    return Fail(error: VideoLoadError.noVideoAvailable)
-                        .eraseToAnyPublisher()
-                }
-                
-                return self.firebaseRepository.downloadVideo(from: metadata.downloadURL)
-                    .map { (metadata, $0) }
-                    .eraseToAnyPublisher()
-            }
-            .receive(on: DispatchQueue.main)
-            .sink(
-                receiveCompletion: { result in
-                    if case .failure(let error) = result {
-                        print("Failed to fetch video from Firebase: \(error)")
-                        self.loadLocalVideo(exerciseName: exerciseName, completion: completion)
-                    }
-                },
-                receiveValue: { [weak self] metadata, data in
-                    do {
-                        let url = try self?.cacheManager.saveVideo(data: data, metadata: metadata)
-                        completion(.success(url ?? URL(fileURLWithPath: "")))
-                    } catch {
-                        self?.loadLocalVideo(exerciseName: exerciseName, completion: completion)
-                    }
-                }
-            )
-            .store(in: &cancellables)
-    }
+//    private func fetchAndCacheVideo(exerciseName: String, completion: @escaping (Result<URL, Error>) -> Void) {
+//        firebaseRepository.fetchVideoMetadata(for: exerciseName)
+//            .flatMap { [weak self] metadata -> AnyPublisher<(VideoMetadata, Data), Error> in
+//                guard let self = self, let metadata = metadata else {
+//                    return Fail(error: VideoLoadError.noVideoAvailable)
+//                        .eraseToAnyPublisher()
+//                }
+//                
+//                return self.firebaseRepository.downloadVideo(from: metadata.downloadURL)
+//                    .map { (metadata, $0) }
+//                    .eraseToAnyPublisher()
+//            }
+//            .receive(on: DispatchQueue.main)
+//            .sink(
+//                receiveCompletion: { result in
+//                    if case .failure(let error) = result {
+//                        print("Failed to fetch video from Firebase: \(error)")
+//                        self.loadLocalVideo(exerciseName: exerciseName, completion: completion)
+//                    }
+//                },
+//                receiveValue: { [weak self] metadata, data in
+//                    do {
+//                        let url = try self?.cacheManager.saveVideo(data: data, metadata: metadata)
+//                        completion(.success(url ?? URL(fileURLWithPath: "")))
+//                    } catch {
+//                        self?.loadLocalVideo(exerciseName: exerciseName, completion: completion)
+//                    }
+//                }
+//            )
+//            .store(in: &cancellables)
+//    }
     
     private func loadLocalVideo(exerciseName: String, completion: @escaping (Result<URL, Error>) -> Void) {
         localRepository.fetchVideoMetadata(for: exerciseName)

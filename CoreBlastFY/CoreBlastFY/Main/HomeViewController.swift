@@ -9,8 +9,13 @@
 import UIKit
 import StoreKit
 import MessageUI
+import SwiftUI
+import Combine
 
 class HomeViewController: UITabBarController, MFMailComposeViewControllerDelegate {
+    
+    private var cancellables = Set<AnyCancellable>()
+    private var premiumButton: UIButton?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -19,12 +24,77 @@ class HomeViewController: UITabBarController, MFMailComposeViewControllerDelegat
         registerForOptimizedNotifications()
         StoreManager.shared.delegate = self
         StoreObserver.shared.delegate = self
-       
+        setupPremiumButton()
+        observeSubscriptionStatus()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         requestReview()
+    }
+    
+    private func setupPremiumButton() {
+        // Create premium button
+        let button = UIButton(type: .system)
+        button.setTitle("🔥 Go Premium", for: .normal)
+        button.setTitleColor(.black, for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .bold)
+        button.backgroundColor = UIColor.systemYellow
+        button.layer.cornerRadius = 20
+        button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 16, bottom: 8, right: 16)
+        button.addTarget(self, action: #selector(premiumButtonTapped), for: .touchUpInside)
+        
+        // Add shadow
+        button.layer.shadowColor = UIColor.black.cgColor
+        button.layer.shadowOffset = CGSize(width: 0, height: 2)
+        button.layer.shadowRadius = 4
+        button.layer.shadowOpacity = 0.2
+        
+        // Add to view
+        button.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(button)
+        
+        // Position at top right
+        NSLayoutConstraint.activate([
+            button.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            button.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            button.heightAnchor.constraint(equalToConstant: 40)
+        ])
+        
+        // Store reference
+        premiumButton = button
+        
+        // Initially hide if already subscribed
+        button.isHidden = StoreManager.shared.isPremium
+    }
+    
+    private func observeSubscriptionStatus() {
+        StoreManager.shared.$isPremium
+            .sink { [weak self] isPremium in
+                // Hide premium button if user is already subscribed
+                self?.premiumButton?.isHidden = isPremium
+            }
+            .store(in: &cancellables)
+    }
+    
+    @objc private func premiumButtonTapped() {
+        // Track analytics
+        AnalyticsManager.shared.trackSubscriptionViewShown(trigger: "home_premium_button")
+        
+        // Present subscription view
+        let subscriptionView = SubscriptionView { [weak self] success in
+            if success {
+                // Subscription successful
+                self?.dismiss(animated: true)
+            } else {
+                // User cancelled
+                self?.dismiss(animated: true)
+            }
+        }
+        
+        let hostingController = UIHostingController(rootView: subscriptionView)
+        hostingController.modalPresentationStyle = .fullScreen
+        present(hostingController, animated: true)
     }
     
     func requestReview() {
@@ -140,13 +210,13 @@ class HomeViewController: UITabBarController, MFMailComposeViewControllerDelegat
         dashboardNavController.navigationBar.titleTextAttributes = [.foregroundColor: UIColor.white]
         
         
-        let browseViewController = BrowseViewController()
-        browseViewController.navigationItem.title = "Browse"
-        browseNavController = UINavigationController(rootViewController: browseViewController)
-        browseNavController.tabBarItem = UITabBarItem(title: "Browse", image: UIImage(systemName: "square.grid.2x2.fill"), selectedImage: nil)
-        browseNavController.navigationBar.prefersLargeTitles = true
-        browseNavController.navigationBar.barStyle = .black
-        browseNavController.navigationBar.titleTextAttributes = [.foregroundColor: UIColor.white]
+//        let browseViewController = BrowseViewController()
+//        browseViewController.navigationItem.title = "Browse"
+//        browseNavController = UINavigationController(rootViewController: browseViewController)
+//        browseNavController.tabBarItem = UITabBarItem(title: "Browse", image: UIImage(systemName: "square.grid.2x2.fill"), selectedImage: nil)
+//        browseNavController.navigationBar.prefersLargeTitles = true
+//        browseNavController.navigationBar.barStyle = .black
+//        browseNavController.navigationBar.titleTextAttributes = [.foregroundColor: UIColor.white]
         
         let settingsViewController = SettingsViewController()
         settingsNavController = UINavigationController(rootViewController: settingsViewController)
@@ -156,7 +226,7 @@ class HomeViewController: UITabBarController, MFMailComposeViewControllerDelegat
         settingsNavController.navigationBar.titleTextAttributes = [.foregroundColor: UIColor.white]
         
         self.setupPreworkoutVC()
-        setViewControllers([workoutNavController, browseNavController, progressionNavController, dashboardNavController,  settingsNavController], animated: true)
+        setViewControllers([workoutNavController, /*browseNavController,*/ progressionNavController, dashboardNavController,  settingsNavController], animated: true)
         self.customizableViewControllers = []
         
         selectedViewController = viewControllers?[0]

@@ -15,7 +15,9 @@ struct LocalExercises: ExerciseInfoStoreProtocol {
     }
     // NOTE: updog is intentionally excluded from the main exercises array
     // It's added as a cool-down/stretch at the end of each workout via exercisesToReturn
-    static let exercises: [Exercise] = [
+    
+    static let exercises: [Exercise] = [reversePlank,legRaises, openClose, pendulums, tPlank, leftSidePlankHipDip, rightSidePlankHipDip, leftSidePlankWrap, rightSidePlankWrap, inOuts, kneeDrives]
+    static let newExercises: [Exercise] = [
         // MARK: - Core Exercises (Beginner to Advanced)
         // Beginner Core
         plank, deadBug, birdDog, crunches, wallSit,

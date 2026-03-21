@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -36,6 +36,11 @@
 		45BC74B72EDD4CBC003AC964 /* BrowseSectionHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BC74AE2EDD4CBC003AC964 /* BrowseSectionHeader.swift */; };
 		45BC74B82EDD4CBC003AC964 /* WorkoutCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BC74AC2EDD4CBC003AC964 /* WorkoutCategory.swift */; };
 		45BC74BA2EDD4EA6003AC964 /* WorkoutLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BC74B92EDD4EA6003AC964 /* WorkoutLibrary.swift */; };
+		45BC76382EFB4715003AC964 /* AnimationExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BC76352EFB4715003AC964 /* AnimationExtensions.swift */; };
+		45BC76392EFB4715003AC964 /* HapticFeedbackManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BC76362EFB4715003AC964 /* HapticFeedbackManager.swift */; };
+		45BC763A2EFB4715003AC964 /* OnboardingTransitions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BC76372EFB4715003AC964 /* OnboardingTransitions.swift */; };
+		45BC763D2EFB4751003AC964 /* OnboardingViewEnhanced.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BC763B2EFB4751003AC964 /* OnboardingViewEnhanced.swift */; };
+		45BC763E2EFB4751003AC964 /* SubscriptionViewEnhanced.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BC763C2EFB4751003AC964 /* SubscriptionViewEnhanced.swift */; };
 		7A0116522471C8840070EB5F /* StoreObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0116512471C8840070EB5F /* StoreObserver.swift */; };
 		7A0116542471C8900070EB5F /* StoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0116532471C8900070EB5F /* StoreManager.swift */; };
 		7A04A1C42888CC990018FE38 /* Progression+SwiftUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A04A1C32888CC990018FE38 /* Progression+SwiftUI.swift */; };
@@ -249,6 +254,11 @@
 		45BC74B12EDD4CBC003AC964 /* BrowseViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseViewController.swift; sourceTree = "<group>"; };
 		45BC74B22EDD4CBC003AC964 /* WorkoutListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutListViewController.swift; sourceTree = "<group>"; };
 		45BC74B92EDD4EA6003AC964 /* WorkoutLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutLibrary.swift; sourceTree = "<group>"; };
+		45BC76352EFB4715003AC964 /* AnimationExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationExtensions.swift; sourceTree = "<group>"; };
+		45BC76362EFB4715003AC964 /* HapticFeedbackManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticFeedbackManager.swift; sourceTree = "<group>"; };
+		45BC76372EFB4715003AC964 /* OnboardingTransitions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingTransitions.swift; sourceTree = "<group>"; };
+		45BC763B2EFB4751003AC964 /* OnboardingViewEnhanced.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewEnhanced.swift; sourceTree = "<group>"; };
+		45BC763C2EFB4751003AC964 /* SubscriptionViewEnhanced.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionViewEnhanced.swift; sourceTree = "<group>"; };
 		642F4CD0EB3870CAE64E9BCD /* NetworkMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NetworkMonitor.swift; path = Video/NetworkMonitor.swift; sourceTree = "<group>"; };
 		7A0116512471C8840070EB5F /* StoreObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreObserver.swift; sourceTree = "<group>"; };
 		7A0116532471C8900070EB5F /* StoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreManager.swift; sourceTree = "<group>"; };
@@ -688,6 +698,9 @@
 				7A0D676F2479C97F00A6E766 /* UIDevice+Extension.swift */,
 				7A2F4A1B2483399400223E54 /* SceneExerciseFetcher.swift */,
 				7A2F4A1D24834EE600223E54 /* ExercisesLoadingView.swift */,
+				45BC76352EFB4715003AC964 /* AnimationExtensions.swift */,
+				45BC76362EFB4715003AC964 /* HapticFeedbackManager.swift */,
+				45BC76372EFB4715003AC964 /* OnboardingTransitions.swift */,
 				7A56E899249BE739004AA193 /* AppInfo.swift */,
 				4529662F2CB90D2F006AE282 /* HostingViewController.swift */,
 				45BC74752EDA7EA3003AC964 /* OnboardingDebugHelper.swift */,
@@ -825,6 +838,8 @@
 		7A8CBB1323E912C700D0D6BD /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
+				45BC763B2EFB4751003AC964 /* OnboardingViewEnhanced.swift */,
+				45BC763C2EFB4751003AC964 /* SubscriptionViewEnhanced.swift */,
 				7A8CBB1423E912C700D0D6BD /* OnboardingPageViewController.swift */,
 				7A8CBB1523E912C700D0D6BD /* OnboardingViewController.swift */,
 				4529662A2CB906F5006AE282 /* SubscriptionView.swift */,
@@ -1091,7 +1106,6 @@
 				};
 			};
 			buildConfigurationList = 7A8CBA8B23E9109800D0D6BD /* Build configuration list for PBXProject "Sixpack Blueprint" */;
-			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -1102,6 +1116,7 @@
 			packageReferences = (
 				45BC74922EDAAFBC003AC964 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
+			preferredProjectObjectVersion = 77;
 			productRefGroup = 7A8CBA9123E9109800D0D6BD /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -1158,6 +1173,9 @@
 				7A8CBB1E23E912C700D0D6BD /* ProgressionPicController.swift in Sources */,
 				7A86DFB2247436A700F2FC35 /* ExercisePresenter.swift in Sources */,
 				7AC2C6922445363700B3BFC8 /* NotificationsViewController.swift in Sources */,
+				45BC76382EFB4715003AC964 /* AnimationExtensions.swift in Sources */,
+				45BC76392EFB4715003AC964 /* HapticFeedbackManager.swift in Sources */,
+				45BC763A2EFB4715003AC964 /* OnboardingTransitions.swift in Sources */,
 				7AC2C6C52449183C00B3BFC8 /* MealPlansViewController.swift in Sources */,
 				7A8CBB1623E912C700D0D6BD /* PreWorkoutInteractor.swift in Sources */,
 				7A8CBAF523E912BA00D0D6BD /* ExerciseWorker.swift in Sources */,
@@ -1274,6 +1292,8 @@
 				7AADDA9224C675F300C1E181 /* SetPicker.swift in Sources */,
 				7A8CBB7823EFAF4D00D0D6BD /* UIView+Layout.swift in Sources */,
 				7A8CBB2E23E912C700D0D6BD /* OnboardingViewController.swift in Sources */,
+				45BC763D2EFB4751003AC964 /* OnboardingViewEnhanced.swift in Sources */,
+				45BC763E2EFB4751003AC964 /* SubscriptionViewEnhanced.swift in Sources */,
 				452966302CB90D2F006AE282 /* HostingViewController.swift in Sources */,
 				7A0116522471C8840070EB5F /* StoreObserver.swift in Sources */,
 				7A8CBB2123E912C700D0D6BD /* ProgressionCollectionViewController.swift in Sources */,
@@ -1484,7 +1504,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 61;
+				CURRENT_PROJECT_VERSION = 64;
 				DEVELOPMENT_TEAM = 652R6A63L8;
 				INFOPLIST_FILE = CoreBlastFY/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Abs Workout: Six Pack Trainer";
@@ -1494,7 +1514,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0.12;
+				MARKETING_VERSION = 2.0.15;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Franchiz.CoreBlast;
 				PRODUCT_NAME = "Sixpack Blueprint";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1510,7 +1530,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 61;
+				CURRENT_PROJECT_VERSION = 64;
 				DEVELOPMENT_TEAM = 652R6A63L8;
 				INFOPLIST_FILE = CoreBlastFY/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Abs Workout: Six Pack Trainer";
@@ -1520,7 +1540,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0.12;
+				MARKETING_VERSION = 2.0.15;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Franchiz.CoreBlast;
 				PRODUCT_NAME = "Sixpack Blueprint";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
