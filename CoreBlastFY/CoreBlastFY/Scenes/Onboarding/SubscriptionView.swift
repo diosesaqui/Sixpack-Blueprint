@@ -268,13 +268,13 @@ struct SubscriptionView: View {
                 VStack(spacing: 0) {
                     // Main Title and Value Proposition
                     VStack(spacing: 12) {
-                        Text("Get Visible Abs in 5\nMinutes a Day")
+                        Text("You're Not Lazy.\nYou're Using the Wrong Plan.")
                             .font(.system(size: 32, weight: .bold))
                             .foregroundColor(.white)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 30)
                         
-                        Text("Daily workouts build momentum—most users see results within 2–4 weeks.")
+                        Text("Most ab routines are designed for athletes with hours to spare. This one is built for real people — 5 minutes a day, starting exactly where you are.")
                             .font(.system(size: 18))
                             .foregroundColor(.white.opacity(0.9))
                             .multilineTextAlignment(.center)
@@ -299,7 +299,7 @@ struct SubscriptionView: View {
                 
                 // Feel Great Section
                 VStack(spacing: 20) {
-                    Text("Feel Great with Just 5\nMinutes a Day.")
+                    Text("Here's What Changes\nin 30 Days:")
                         .font(.system(size: 28, weight: .bold))
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
@@ -308,11 +308,11 @@ struct SubscriptionView: View {
                     
                     // Benefits List
                     VStack(spacing: 16) {
-                        CoreBenefitRow(text: "Build Core Strength")
-                        CoreBenefitRow(text: "Improve Posture") 
-                        CoreBenefitRow(text: "Get Visible Abs")
-                        CoreBenefitRow(text: "Boost Confidence")
-                        CoreBenefitRow(text: "Increase Stability")
+                        CoreBenefitRow(text: "Your core activates the right muscles — finally")
+                        CoreBenefitRow(text: "Visible definition starts showing by week 2")
+                        CoreBenefitRow(text: "No gym, no equipment, no excuses")
+                        CoreBenefitRow(text: "You stop quitting — 5 min is actually doable")
+                        CoreBenefitRow(text: "Confidence you feel before anyone else notices")
                     }
                     .padding(.horizontal, 40)
                 }
