@@ -80,7 +80,7 @@ struct SubscriptionViewEnhanced: View {
     // CTA button label based on selected plan
     private var ctaButtonTitle: String {
         guard let option = selectedOption else { return "Get Started" }
-        if option.freeTrial { return "Try Free for 14 Days" }
+        if option.freeTrial { return "Try Free for 7 Days" }
         switch option.id {
         case InAppIds.premiumAnnual:  return "Get Yearly Access"
         case InAppIds.premiumMonthly: return "Get Monthly Access"
