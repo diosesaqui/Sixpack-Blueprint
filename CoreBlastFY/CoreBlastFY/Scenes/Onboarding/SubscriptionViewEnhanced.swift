@@ -191,7 +191,7 @@ struct SubscriptionViewEnhanced: View {
                 VStack(spacing: 0) {
                     // Animated title
                     VStack(spacing: 12) {
-                        Text("Get Visible Abs in 5\nMinutes a Day")
+                        Text("You're Not Lazy.\nYou're Using the Wrong Plan.")
                             .font(.system(size: 32, weight: .bold))
                             .foregroundColor(.white)
                             .multilineTextAlignment(.center)
@@ -200,7 +200,7 @@ struct SubscriptionViewEnhanced: View {
                             .opacity(showContent ? 1 : 0)
                             .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.2), value: showContent)
                         
-                        Text("Daily workouts build momentum—most users see results within 2–4 weeks.")
+                        Text("Most ab routines are designed for athletes with hours to spare. This one is built for real people — 5 minutes a day, starting exactly where you are.")
                             .font(.system(size: 18))
                             .foregroundColor(.white.opacity(0.9))
                             .multilineTextAlignment(.center)
@@ -230,7 +230,7 @@ struct SubscriptionViewEnhanced: View {
                 
                     // Animated Benefits Section
                     VStack(spacing: 20) {
-                        Text("Feel Great with Just 5\nMinutes a Day.")
+                        Text("Here's What Changes\nin 30 Days:")
                             .font(.system(size: 28, weight: .bold))
                             .foregroundColor(.white)
                             .multilineTextAlignment(.center)
@@ -239,7 +239,7 @@ struct SubscriptionViewEnhanced: View {
                             .fadeInAnimation(delay: 0.6)
                         
                         VStack(spacing: 16) {
-                            ForEach(Array(["Build Core Strength", "Improve Posture", "Get Visible Abs", "Boost Confidence", "Increase Stability"].enumerated()), id: \.offset) { index, benefit in
+                            ForEach(Array(["Your core activates the right muscles — finally", "Visible definition starts showing by week 2", "No gym, no equipment, no excuses", "You stop quitting — 5 min is actually doable", "Confidence you feel before anyone else notices"].enumerated()), id: \.offset) { index, benefit in
                                 AnimatedBenefitRow(text: benefit, index: index, isAnimating: animateBenefits)
                             }
                         }

@@ -3,144 +3,168 @@ import fs from 'fs';
 import path from 'path';
 
 const OUT_DIR = '/home/node/.openclaw/workspace/coreblastfy/ads/creatives';
+fs.mkdirSync(OUT_DIR, { recursive: true });
 
+// Each ad: intro + bold pain phrase + outro
 const ads = [
-  { id: 'sp01', pain: 'suck in your stomach\nevery time you look\nin the mirror' },
-  { id: 'sp02', pain: "had a belly since\nyour 20s and nothing\nhas worked" },
-  { id: 'sp03', pain: "skinny everywhere\nexcept your stomach" },
-  { id: 'sp04', pain: "work out regularly\nbut still can't\nsee your abs" },
-  { id: 'sp05', pain: "lost weight but your\nbelly fat still\nwon't budge" },
-  { id: 'sp06', pain: "hate taking your shirt\noff at the beach\nor pool" },
-  { id: 'sp07', pain: "do 100 crunches a day\nand still see\nno results" },
-  { id: 'sp08', pain: "can't stay consistent\nwith any\nworkout plan" },
-  { id: 'sp09', pain: "bloated and soft\nno matter\nwhat you eat" },
-  { id: 'sp10', pain: "have love handles\nyou just can't\nget rid of" },
-  { id: 'sp11', pain: "look fit in clothes\nbut soft without\na shirt" },
-  { id: 'sp12', pain: "tried every diet\nbut your core\nnever changes" },
-  { id: 'sp13', pain: "want abs but don't\nhave time for\nthe gym" },
-  { id: 'sp14', pain: "been putting off\ngetting your body\nright for years" },
-  { id: 'sp15', pain: "feel embarrassed about\nyour stomach\nin photos" },
+  { id: 'sp01', bold: 'suck in your stomach every time you look in the mirror' },
+  { id: 'sp02', bold: 'had a belly since your 20s and nothing has worked' },
+  { id: 'sp03', bold: 'are skinny everywhere except your stomach' },
+  { id: 'sp04', bold: 'work out regularly but still can\'t see your abs' },
+  { id: 'sp05', bold: 'lost weight but your belly fat still won\'t budge' },
+  { id: 'sp06', bold: 'hate taking your shirt off at the beach or pool' },
+  { id: 'sp07', bold: 'do 100 crunches a day and still see no results' },
+  { id: 'sp08', bold: 'can\'t stay consistent with any workout plan' },
+  { id: 'sp09', bold: 'feel bloated and soft no matter what you eat' },
+  { id: 'sp10', bold: 'have love handles you just can\'t get rid of' },
+  { id: 'sp11', bold: 'look fit in clothes but soft without a shirt' },
+  { id: 'sp12', bold: 'have tried every diet but your core never changes' },
+  { id: 'sp13', bold: 'want abs but don\'t have time for the gym' },
+  { id: 'sp14', bold: 'have been putting off getting your body right for years' },
+  { id: 'sp15', bold: 'feel embarrassed about your stomach in photos' },
 ];
 
-const W = 1080, H = 1080;
-const CYAN = '#00DDB4';
-
-function renderAd(ad) {
+// Render a single canvas given dimensions
+function renderAd(ad, W, H) {
   const canvas = createCanvas(W, H);
   const ctx = canvas.getContext('2d');
 
-  // BACKGROUND
-  ctx.fillStyle = '#0d1117';
+  // Background — dark navy like reference
+  ctx.fillStyle = '#16213e';
   ctx.fillRect(0, 0, W, H);
 
-  // Subtle vignette glow center
-  const glow = ctx.createRadialGradient(W / 2, H * 0.45, 60, W / 2, H * 0.45, 520);
-  glow.addColorStop(0, 'rgba(15, 40, 80, 0.6)');
-  glow.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = glow;
+  // Very subtle vignette
+  const vig = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, Math.max(W,H)*0.65);
+  vig.addColorStop(0, 'rgba(255,255,255,0.03)');
+  vig.addColorStop(1, 'rgba(0,0,0,0.25)');
+  ctx.fillStyle = vig;
   ctx.fillRect(0, 0, W, H);
 
-  // Cyan top accent line
-  const topLine = ctx.createLinearGradient(220, 0, 860, 0);
-  topLine.addColorStop(0, 'rgba(0,221,180,0)');
-  topLine.addColorStop(0.5, 'rgba(0,221,180,1)');
-  topLine.addColorStop(1, 'rgba(0,221,180,0)');
-  ctx.fillStyle = topLine;
-  ctx.fillRect(220, 52, 640, 3);
+  const SIDE_PAD = Math.round(W * 0.1);
+  const maxWidth = W - SIDE_PAD * 2;
+  const FONT_SIZE = Math.round(W * 0.048); // ~52px at 1080
+  const LINE_H = Math.round(FONT_SIZE * 1.55);
 
-  // BRAND
-  ctx.font = 'bold 22px sans-serif';
-  ctx.fillStyle = CYAN;
   ctx.textAlign = 'center';
-  ctx.fillText('SIX PACK BLUEPRINT', W / 2, 94);
 
-  // INTRO
-  ctx.font = 'italic 38px sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.45)';
-  ctx.fillText('If you wake up and', W / 2, 186);
+  // Build the full paragraph as segments: [text, isBold]
+  const intro   = 'If you wake up and ';
+  const boldTxt = ad.bold + ',';
+  const outro   = ' we made this for you.';
 
-  // PAIN POINT
-  const painLines = ad.pain.split('\n');
-  const n = painLines.length;
-  const fontSize = n <= 2 ? 86 : 74;
-  const lineH = n <= 2 ? 100 : 88;
-  ctx.font = `bold ${fontSize}px sans-serif`;
-  ctx.fillStyle = '#FFFFFF';
+  // Wrap mixed-weight text into lines
+  const lines = wrapMixed(ctx, intro, boldTxt, outro, maxWidth, FONT_SIZE);
 
-  const totalPainH = n * lineH;
-  // Start pain block so it ends around y=640
-  const painStartY = Math.max(240, 640 - totalPainH);
+  const totalTextH = lines.length * LINE_H;
+  // For 9:16 (tall), position text at 42% from top instead of true center
+  const centerRatio = H > W ? 0.42 : 0.5;
+  let startY = H * centerRatio - totalTextH / 2 + FONT_SIZE * 0.8;
 
-  painLines.forEach((line, i) => {
-    ctx.fillText(line, W / 2, painStartY + i * lineH);
-  });
+  for (const line of lines) {
+    drawMixedLine(ctx, line, W / 2, startY, FONT_SIZE);
+    startY += LINE_H;
+  }
 
-  const painEndY = painStartY + totalPainH;
-
-  // DIVIDER
-  const divY = painEndY + 44;
-  const divGrad = ctx.createLinearGradient(160, divY, 920, divY);
-  divGrad.addColorStop(0, 'rgba(255,255,255,0)');
-  divGrad.addColorStop(0.5, 'rgba(255,255,255,0.22)');
-  divGrad.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.strokeStyle = divGrad;
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(160, divY);
-  ctx.lineTo(920, divY);
-  ctx.stroke();
-
-  // "we made this for you."
-  const ctaY = divY + 68;
-  ctx.font = 'bold 50px sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.93)';
-  ctx.fillText('we made this for you.', W / 2, ctaY);
-
-  // SOCIAL PROOF ROW
-  const spY = ctaY + 70;
-  ctx.font = '26px sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.35)';
-  ctx.fillText('★★★★★  50,000+ users  •  5-min daily workouts', W / 2, spY);
-
-  // BOTTOM BADGE
-  const badgeW = 460, badgeH = 58, badgeR = 29;
-  const badgeX = (W - badgeW) / 2;
-  const badgeCY = H - 80;
-
-  // Pill background
-  ctx.fillStyle = 'rgba(0,221,180,0.10)';
-  roundRect(ctx, badgeX, badgeCY - badgeH / 2, badgeW, badgeH, badgeR);
-  ctx.fill();
-
-  ctx.strokeStyle = 'rgba(0,221,180,0.40)';
-  ctx.lineWidth = 1.5;
-  roundRect(ctx, badgeX, badgeCY - badgeH / 2, badgeW, badgeH, badgeR);
-  ctx.stroke();
-
-  ctx.font = 'bold 23px sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.80)';
-  ctx.fillText('Six Pack in 30 Days Blueprint', W / 2, badgeCY + 9);
+  // Tiny app name at bottom
+  const labelSize = Math.round(W * 0.018);
+  ctx.font = `${labelSize}px sans-serif`;
+  ctx.fillStyle = 'rgba(255,255,255,0.28)';
+  ctx.fillText('Six Pack in 30 Days Blueprint', W / 2, H - Math.round(H * 0.04));
 
   return canvas.toBuffer('image/png');
 }
 
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
+// Segment type: { text, bold }
+function makeParagraphSegments(intro, bold, outro) {
+  return [
+    { text: intro, bold: false },
+    { text: bold,  bold: true  },
+    { text: outro, bold: false },
+  ];
 }
 
+// Wrap mixed segments into lines, each line = array of {text, bold}
+function wrapMixed(ctx, intro, bold, outro, maxWidth, fontSize) {
+  const segments = makeParagraphSegments(intro, bold, outro);
+  // Flatten all words with their bold flag
+  const words = [];
+  for (const seg of segments) {
+    const ws = seg.text.split(' ').filter(w => w.length > 0);
+    ws.forEach((w, i) => {
+      // re-attach space except last of segment (we handle spacing separately)
+      words.push({ word: w, bold: seg.bold });
+    });
+  }
+
+  const lines = [];
+  let currentLine = [];
+  let currentWidth = 0;
+  const SPACE = measureText(ctx, ' ', false, fontSize);
+
+  for (let i = 0; i < words.length; i++) {
+    const { word, bold } = words[i];
+    const wWidth = measureText(ctx, word, bold, fontSize);
+    const addWidth = currentLine.length === 0 ? wWidth : SPACE + wWidth;
+
+    if (currentLine.length > 0 && currentWidth + addWidth > maxWidth) {
+      lines.push(currentLine);
+      currentLine = [{ word, bold }];
+      currentWidth = wWidth;
+    } else {
+      currentLine.push({ word, bold });
+      currentWidth += addWidth;
+    }
+  }
+  if (currentLine.length > 0) lines.push(currentLine);
+  return lines;
+}
+
+function measureText(ctx, text, bold, fontSize) {
+  ctx.font = `${bold ? 'bold ' : ''}${fontSize}px sans-serif`;
+  return ctx.measureText(text).width;
+}
+
+function drawMixedLine(ctx, words, centerX, y, fontSize) {
+  // Measure total line width
+  let totalW = 0;
+  for (let i = 0; i < words.length; i++) {
+    if (i > 0) totalW += measureText(ctx, ' ', false, fontSize);
+    totalW += measureText(ctx, words[i].word, words[i].bold, fontSize);
+  }
+
+  let x = centerX - totalW / 2;
+
+  for (let i = 0; i < words.length; i++) {
+    if (i > 0) {
+      const spaceW = measureText(ctx, ' ', false, fontSize);
+      x += spaceW;
+    }
+    const { word, bold } = words[i];
+    ctx.font = `${bold ? 'bold ' : ''}${fontSize}px sans-serif`;
+    ctx.fillStyle = bold ? 'rgba(255,255,255,0.96)' : 'rgba(255,255,255,0.78)';
+    ctx.textAlign = 'left';
+    ctx.fillText(word, x, y);
+    x += measureText(ctx, word, bold, fontSize);
+  }
+  ctx.textAlign = 'center'; // reset
+}
+
+// Render all 15 in 1:1 square
+console.log('=== Rendering 1:1 square (1080×1080) ===');
 for (const ad of ads) {
-  const buf = renderAd(ad);
+  const buf = renderAd(ad, 1080, 1080);
   fs.writeFileSync(path.join(OUT_DIR, `${ad.id}.png`), buf);
   console.log(`✅ ${ad.id}.png`);
 }
-console.log('\nDone — 15 ads rendered.');
+
+// Top 6 for 9:16 Stories
+const top6 = ['sp01','sp02','sp03','sp06','sp07','sp10'];
+console.log('\n=== Rendering 9:16 stories (1080×1920) for top 6 ===');
+for (const id of top6) {
+  const ad = ads.find(a => a.id === id);
+  const buf = renderAd(ad, 1080, 1920);
+  fs.writeFileSync(path.join(OUT_DIR, `${id}_story.png`), buf);
+  console.log(`✅ ${id}_story.png`);
+}
+
+console.log('\nAll done.');
