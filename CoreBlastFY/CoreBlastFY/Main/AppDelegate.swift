@@ -11,6 +11,7 @@ import BackgroundTasks
 import StoreKit
 import FirebaseCore
 import FirebaseAnalytics
+import FacebookCore
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -44,11 +45,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Initialize Firebase
         FirebaseApp.configure()
         
+        // Initialize Facebook SDK
+        ApplicationDelegate.shared.application(application, didFinishLaunchingWithOptions: launchOptions)
+        
         SKPaymentQueue.default().add(StoreObserver.shared)
         
         loadCoreFiles()
         
         return true
+    }
+    
+    func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+        ApplicationDelegate.shared.application(app, open: url, options: options)
     }
     
     

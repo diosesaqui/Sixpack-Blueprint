@@ -3,13 +3,13 @@
 //  Sixpack Blueprint
 //
 //  Handles Facebook SDK initialization, ATT prompt, and App Events.
-//  NOTE: Requires FacebookCore package to be added via SPM before uncommenting SDK calls.
 //
 
 import Foundation
 import AppTrackingTransparency
 import AdServices
 import StoreKit
+import FacebookCore
 
 // MARK: - Facebook Events (mirrors SpeakLife setup)
 
@@ -43,8 +43,7 @@ class FacebookManager {
                     let granted = status == .authorized
                     print("📱 ATT status: \(status.rawValue) — granted: \(granted)")
 
-                    // TODO: Once Facebook SDK is added via SPM, uncomment:
-                    // Settings.shared.isAdvertiserTrackingEnabled = granted
+                    Settings.shared.isAdvertiserTrackingEnabled = granted
 
                     UserDefaults.standard.set(granted, forKey: "att_granted")
                     UserDefaults.standard.set(true, forKey: "att_requested")
@@ -63,8 +62,7 @@ class FacebookManager {
     func logEvent(_ event: FBEvent, parameters: [String: Any]? = nil) {
         print("📊 FB Event: \(event.rawValue) — params: \(parameters ?? [:])")
 
-        // TODO: Once Facebook SDK is added via SPM, uncomment:
-        // AppEvents.shared.logEvent(AppEvents.Name(event.rawValue), parameters: parameters ?? [:])
+        AppEvents.shared.logEvent(AppEvents.Name(event.rawValue), parameters: parameters ?? [:])
 
         // Also fire SKAdNetwork update for key conversion events
         updateSKAdNetworkConversionValue(for: event)
@@ -73,10 +71,9 @@ class FacebookManager {
     func logPurchase(amount: Double, currency: String = "USD", productId: String) {
         print("💰 FB Purchase: \(amount) \(currency) — product: \(productId)")
 
-        // TODO: Once Facebook SDK is added via SPM, uncomment:
-        // AppEvents.shared.logPurchase(amount: amount, currency: currency, parameters: [
-        //     AppEvents.ParameterName.contentID: productId
-        // ])
+        AppEvents.shared.logPurchase(amount: amount, currency: currency, parameters: [
+            AppEvents.ParameterName.contentID: productId
+        ])
     }
 
     // MARK: - SKAdNetwork Conversion Values
