@@ -43,8 +43,6 @@ class FacebookManager {
                     let granted = status == .authorized
                     print("📱 ATT status: \(status.rawValue) — granted: \(granted)")
 
-                   // Settings.shared.isAdvertiserTrackingEnabled = granted
-
                     UserDefaults.standard.set(granted, forKey: "att_granted")
                     UserDefaults.standard.set(true, forKey: "att_requested")
                     completion?(granted)
