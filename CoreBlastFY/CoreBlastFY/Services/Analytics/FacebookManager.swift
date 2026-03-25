@@ -43,7 +43,7 @@ class FacebookManager {
                     let granted = status == .authorized
                     print("📱 ATT status: \(status.rawValue) — granted: \(granted)")
 
-                    Settings.shared.isAdvertiserTrackingEnabled = granted
+                    // FB SDK v17+ reads ATT status automatically — no manual setter needed
 
                     UserDefaults.standard.set(granted, forKey: "att_granted")
                     UserDefaults.standard.set(true, forKey: "att_requested")
