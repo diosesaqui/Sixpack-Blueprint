@@ -62,7 +62,10 @@ class FacebookManager {
     func logEvent(_ event: FBEvent, parameters: [String: Any]? = nil) {
         print("📊 FB Event: \(event.rawValue) — params: \(parameters ?? [:])")
 
-        AppEvents.shared.logEvent(AppEvents.Name(event.rawValue), parameters: parameters ?? [:])
+        let fbParams: [AppEvents.ParameterName: Any] = (parameters ?? [:]).reduce(into: [:]) {
+            $0[AppEvents.ParameterName($1.key)] = $1.value
+        }
+        AppEvents.shared.logEvent(AppEvents.Name(event.rawValue), parameters: fbParams)
 
         // Also fire SKAdNetwork update for key conversion events
         updateSKAdNetworkConversionValue(for: event)
@@ -71,9 +74,11 @@ class FacebookManager {
     func logPurchase(amount: Double, currency: String = "USD", productId: String) {
         print("💰 FB Purchase: \(amount) \(currency) — product: \(productId)")
 
-        AppEvents.shared.logPurchase(amount: amount, currency: currency, parameters: [
-            AppEvents.ParameterName.contentID: productId
-        ])
+        AppEvents.shared.logPurchase(
+            amount: amount,
+            currency: currency,
+            parameters: [AppEvents.ParameterName("fb_content_id"): productId]
+        )
     }
 
     // MARK: - SKAdNetwork Conversion Values
