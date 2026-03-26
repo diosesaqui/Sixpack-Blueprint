@@ -155,10 +155,10 @@ struct PainHookView: View {
     @State private var showContent = false
 
     let options: [(emoji: String, text: String)] = [
-        ("😞", "My belly won't flatten no matter what I do"),
-        ("😤", "I can't stay consistent with workouts"),
-        ("🙈", "I have love handles I can't get rid of"),
-        ("🤔", "I look slim but still have visible belly fat")
+        ("😶", "I avoid fitted clothes because of how I look"),
+        ("🙈", "I won't take my shirt off — even at the beach"),
+        ("😤", "People don't notice me the way I want them to"),
+        ("🤔", "I feel good inside but my body doesn't show it")
     ]
 
     var body: some View {
@@ -171,7 +171,7 @@ struct PainHookView: View {
                 Spacer()
 
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Which of these\nsounds like you?")
+                    Text("Be honest —\nwhich is you?")
                         .font(.system(size: 34, weight: .bold))
                         .foregroundColor(.white)
                         .padding(.horizontal, 24)
@@ -179,7 +179,7 @@ struct PainHookView: View {
                         .offset(y: showContent ? 0 : 16)
                         .animation(.easeOut(duration: 0.5).delay(0.1), value: showContent)
 
-                    Text("Choose the one that hits closest to home.")
+                    Text("Pick the one that hits closest to home.")
                         .font(.system(size: 16))
                         .foregroundColor(.white.opacity(0.55))
                         .padding(.horizontal, 24)
@@ -230,10 +230,10 @@ struct GoalSelectionView: View {
     @State private var showContent = false
 
     let options: [(emoji: String, text: String)] = [
-        ("🎯", "Visible six-pack abs"),
-        ("🔥", "Flat stomach & less belly fat"),
-        ("💪", "Stronger, more stable core"),
-        ("🧘", "Better posture & less back pain")
+        ("🔥", "I want to turn heads when I walk in"),
+        ("👕", "I want to look good in anything I wear"),
+        ("🪞", "I want to feel confident without a shirt"),
+        ("✨", "I want people to notice I've changed")
     ]
 
     var body: some View {
@@ -246,7 +246,7 @@ struct GoalSelectionView: View {
                 Spacer()
 
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("What do you\nwant most?")
+                    Text("What's the\nreal goal?")
                         .font(.system(size: 34, weight: .bold))
                         .foregroundColor(.white)
                         .padding(.horizontal, 24)
@@ -254,7 +254,7 @@ struct GoalSelectionView: View {
                         .offset(y: showContent ? 0 : 16)
                         .animation(.easeOut(duration: 0.5).delay(0.1), value: showContent)
 
-                    Text("We'll build your plan around your #1 goal.")
+                    Text("Your plan is built around the outcome you actually want.")
                         .font(.system(size: 16))
                         .foregroundColor(.white.opacity(0.55))
                         .padding(.horizontal, 24)
@@ -299,10 +299,10 @@ struct BodyTypeView: View {
     @State private var showContent = false
 
     let options: [(emoji: String, text: String)] = [
-        ("🧍", "Slim but soft — not much muscle"),
-        ("🙆", "Average build — a bit of belly fat"),
-        ("🏃", "Athletic but want more definition"),
-        ("⚖️", "Carrying extra weight, especially around the core")
+        ("🧍", "Slim but soft — no real definition yet"),
+        ("🙆", "Average build — could look a lot better"),
+        ("🏃", "Athletic but not turning heads yet"),
+        ("⚖️", "Carrying extra weight — ready to change that")
     ]
 
     var body: some View {
@@ -323,7 +323,7 @@ struct BodyTypeView: View {
                         .offset(y: showContent ? 0 : 16)
                         .animation(.easeOut(duration: 0.5).delay(0.1), value: showContent)
 
-                    Text("Be honest — your plan only works if it fits you.")
+                    Text("Be real — the right plan starts with where you actually are.")
                         .font(.system(size: 16))
                         .foregroundColor(.white.opacity(0.55))
                         .padding(.horizontal, 24)
@@ -443,9 +443,9 @@ struct PlanBuildingView: View {
 
     let labels = [
         "Analyzing your profile...",
-        "Mapping your core weaknesses...",
-        "Selecting targeted exercises...",
-        "Calibrating intensity levels...",
+        "Mapping your transformation path...",
+        "Selecting exercises for your look...",
+        "Calibrating for maximum results...",
         "Your plan is ready."
     ]
 
@@ -588,20 +588,22 @@ struct PlanReadyView: View {
         var items: [(String, String)] = []
         
         // Goal-specific bullet
-        if selectedGoal.contains("six-pack") || selectedGoal.contains("abs") {
-            items.append(("⚡", "Exercises specifically targeting ab definition"))
-        } else if selectedGoal.contains("flat") || selectedGoal.contains("belly") {
-            items.append(("🔥", "Fat-burning core sequences for a flatter stomach"))
-        } else if selectedGoal.contains("stronger") || selectedGoal.contains("stable") {
-            items.append(("💪", "Deep core training for real strength"))
+        if selectedGoal.contains("turn heads") {
+            items.append(("🔥", "Core definition that shows through any shirt"))
+        } else if selectedGoal.contains("look good") {
+            items.append(("👕", "The lean, defined look that makes clothes fit better"))
+        } else if selectedGoal.contains("shirt") || selectedGoal.contains("confident") {
+            items.append(("🪞", "The visible results you'll actually want to show off"))
+        } else if selectedGoal.contains("notice") || selectedGoal.contains("changed") {
+            items.append(("✨", "Visible transformation people will comment on"))
         } else {
-            items.append(("🎯", "Workouts built around your goal"))
+            items.append(("🎯", "Workouts built around the look you want"))
         }
         
-        // Universal benefits
+        // Universal confidence-focused benefits
         items.append(("⏱", "5-minute daily workouts — no gym needed"))
-        items.append(("📈", "Progressive difficulty that grows with you"))
-        items.append(("🔔", "Daily check-ins to keep you consistent"))
+        items.append(("📈", "Progressive plan that keeps delivering results"))
+        items.append(("🔔", "Daily check-ins so you never lose momentum"))
         
         return items
     }
@@ -633,7 +635,7 @@ struct PlanReadyView: View {
                     }
 
                     VStack(spacing: 10) {
-                        Text("Your plan is ready.")
+                        Text("Your look is about\nto change.")
                             .font(.system(size: 34, weight: .bold))
                             .foregroundColor(.white)
                             .multilineTextAlignment(.center)
@@ -641,7 +643,7 @@ struct PlanReadyView: View {
                             .offset(y: showContent ? 0 : 20)
                             .animation(.easeOut(duration: 0.5).delay(0.3), value: showContent)
 
-                        Text("Your personalized plan is ready. 50,000+ people are already on their journey.")
+                        Text("50,000+ people already got the body that turns heads. Your plan is built and ready.")
                             .font(.system(size: 16))
                             .foregroundColor(.white.opacity(0.6))
                             .multilineTextAlignment(.center)
@@ -679,7 +681,7 @@ struct PlanReadyView: View {
                             currentStep += 1
                         }
                     }) {
-                        Text("GET MY FREE PLAN →")
+                        Text("GET MY LOOK →")
                             .font(.system(size: 18, weight: .bold))
                             .foregroundColor(.black)
                             .frame(maxWidth: .infinity)
