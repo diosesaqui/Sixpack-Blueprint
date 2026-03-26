@@ -387,15 +387,15 @@ struct SubscriptionViewEnhanced: View {
                 .disabled(viewModel.isPurchasing)
                 
                 // FAQ — removes last-second doubt
-                VStack(spacing: 8) {
-                    FAQRow(question: "When does billing start?", answer: "After your free trial ends. Not before.")
-                    FAQRow(question: "Can I cancel anytime?", answer: "Yes — cancel in 1 tap from Settings.")
-                    FAQRow(question: "Is a credit card required now?", answer: "No charge until your trial is over.")
-                }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 32)
-                .opacity(showContent ? 1 : 0)
-                .animation(.easeOut(duration: 0.4).delay(1.2), value: showContent)
+//                VStack(spacing: 8) {
+//                    FAQRow(question: "When does billing start?", answer: "After your free trial ends. Not before.")
+//                    FAQRow(question: "Can I cancel anytime?", answer: "Yes — cancel in 1 tap from Settings.")
+//                    FAQRow(question: "Is a credit card required now?", answer: "No charge until your trial is over.")
+//                }
+//                .padding(.horizontal, 24)
+//                .padding(.bottom, 32)
+//                .opacity(showContent ? 1 : 0)
+//                .animation(.easeOut(duration: 0.4).delay(1.2), value: showContent)
             }
             .background(
                 LinearGradient(
