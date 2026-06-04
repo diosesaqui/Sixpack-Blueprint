@@ -101,8 +101,28 @@ class AnalyticsManager {
         ])
     }
     
+    // MARK: - Review Prompt Events (ASO)
+
+    func trackReviewPromptShown(source: String) {
+        Analytics.logEvent("review_prompt_shown", parameters: [
+            "source": source
+        ])
+    }
+
+    func trackReviewPromptRequested(source: String) {
+        Analytics.logEvent("review_prompt_requested", parameters: [
+            "source": source
+        ])
+    }
+
+    func trackReviewPromptSkipped(source: String) {
+        Analytics.logEvent("review_prompt_skipped", parameters: [
+            "source": source
+        ])
+    }
+
     // MARK: - Workout Events
-    
+
     func trackWorkoutStarted(workoutType: String, exercises: Int) {
         Analytics.logEvent("workout_started", parameters: [
             "workout_type": workoutType,

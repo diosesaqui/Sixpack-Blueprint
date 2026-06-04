@@ -2,7 +2,7 @@
 //  OnboardingViewEnhanced.swift
 //  Sixpack Blueprint
 //
-//  Rebuilt for 7-step lean funnel — pain first, paywall fast.
+//  Rebuilt for lean funnel — pain first, plan, 5-star ask, paywall fast.
 //
 
 import SwiftUI
@@ -54,6 +54,10 @@ struct OnboardingViewEnhanced: View {
                         .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity),
                                                 removal: .move(edge: .leading).combined(with: .opacity)))
                 case 6:
+                    ReviewPromptView(currentStep: $currentStep)
+                        .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity),
+                                                removal: .move(edge: .leading).combined(with: .opacity)))
+                case 7:
                     SubscriptionViewEnhanced { success in
                         HapticFeedbackManager.shared.cancelAllPendingHaptics()
                         OnboardingManager.markOnboardingCompleted()
@@ -73,7 +77,7 @@ struct OnboardingViewEnhanced: View {
         }
         .onChange(of: currentStep) { step in
             HapticFeedbackManager.shared.stepTransition()
-            let names = ["pain_hook","goal","body_type","age","plan_building","plan_ready","paywall"]
+            let names = ["pain_hook","goal","body_type","age","plan_building","plan_ready","review","paywall"]
             if step < names.count {
                 AnalyticsManager.shared.trackOnboardingStep(step: names[step], stepNumber: step)
             }
@@ -704,6 +708,141 @@ struct PlanReadyView: View {
             withAnimation { showContent = true }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 withAnimation { showBullets = true }
+            }
+        }
+    }
+}
+
+// MARK: - Step 6: Review Prompt (ASO — fired at emotional peak, before paywall)
+
+struct ReviewPromptView: View {
+    @Binding var currentStep: Int
+    @State private var showContent = false
+    @State private var starsLit = 0
+    @State private var didRequest = false
+
+    private func advance() {
+        HapticFeedbackManager.shared.impact(.medium)
+        withAnimation(.spring(response: 0.45, dampingFraction: 0.8)) {
+            currentStep += 1
+        }
+    }
+
+    private func requestReview() {
+        guard !didRequest else { return }
+        didRequest = true
+        HapticFeedbackManager.shared.celebrationPattern()
+
+        // Trigger the native App Store rating prompt. This is what actually
+        // deposits a star rating and lifts our ASO ranking.
+        if let scene = UIApplication.shared.connectedScenes
+            .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene
+            ?? UIApplication.shared.connectedScenes.first as? UIWindowScene {
+            AppStore.requestReview(in: scene)
+            UserAPI.user.requestReviewCount += 1
+            UserAPI.user.lastReviewRequestDate = Date()
+            UserManager.save()
+        }
+
+        AnalyticsManager.shared.trackReviewPromptRequested(source: "onboarding")
+
+        // The native sheet is non-blocking; give it a beat, then move to paywall.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
+            advance()
+        }
+    }
+
+    var body: some View {
+        ZStack {
+            Color.black.edgesIgnoringSafeArea(.all)
+
+            VStack(spacing: 0) {
+                Spacer()
+
+                VStack(spacing: 26) {
+                    // Animated stars
+                    HStack(spacing: 10) {
+                        ForEach(0..<5) { i in
+                            Image(systemName: "star.fill")
+                                .font(.system(size: 30))
+                                .foregroundColor(i < starsLit ? Color.yellow : Color.white.opacity(0.18))
+                                .scaleEffect(i < starsLit ? 1 : 0.7)
+                                .animation(.spring(response: 0.4, dampingFraction: 0.6).delay(Double(i) * 0.12), value: starsLit)
+                        }
+                    }
+
+                    VStack(spacing: 12) {
+                        Text("Help the next guy\nfind this.")
+                            .font(.system(size: 32, weight: .bold))
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.center)
+                            .opacity(showContent ? 1 : 0)
+                            .offset(y: showContent ? 0 : 18)
+                            .animation(.easeOut(duration: 0.5).delay(0.2), value: showContent)
+
+                        Text("Sixpack Blueprint runs on word of mouth. A 5-star rating takes 3 seconds and helps thousands of people find the plan you just got.")
+                            .font(.system(size: 16))
+                            .foregroundColor(.white.opacity(0.6))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 32)
+                            .opacity(showContent ? 1 : 0)
+                            .animation(.easeOut(duration: 0.5).delay(0.32), value: showContent)
+                    }
+
+                    // Social proof line
+                    HStack(spacing: 6) {
+                        Image(systemName: "person.2.fill")
+                            .font(.system(size: 13))
+                            .foregroundColor(.white.opacity(0.5))
+                        Text("Joining 50,000+ who already left a rating")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(.white.opacity(0.5))
+                    }
+                    .opacity(showContent ? 1 : 0)
+                    .animation(.easeOut(duration: 0.5).delay(0.44), value: showContent)
+                }
+
+                Spacer()
+
+                VStack(spacing: 14) {
+                    Button(action: requestReview) {
+                        Text("RATE 5 STARS ★")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.black)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 58)
+                            .background(Color.white)
+                            .cornerRadius(14)
+                            .shadow(color: Color.white.opacity(0.25), radius: 12, x: 0, y: 6)
+                    }
+                    .padding(.horizontal, 24)
+                    .opacity(showContent ? 1 : 0)
+                    .scaleEffect(showContent ? 1 : 0.9)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.75).delay(0.55), value: showContent)
+
+                    Button(action: {
+                        AnalyticsManager.shared.trackReviewPromptSkipped(source: "onboarding")
+                        advance()
+                    }) {
+                        Text("Maybe later")
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundColor(.white.opacity(0.45))
+                    }
+                    .opacity(showContent ? 1 : 0)
+                    .animation(.easeOut(duration: 0.4).delay(0.7), value: showContent)
+                }
+                .padding(.bottom, 44)
+            }
+        }
+        .onAppear {
+            AnalyticsManager.shared.trackReviewPromptShown(source: "onboarding")
+            withAnimation { showContent = true }
+            // Light the stars up one by one for a satisfying lead-in.
+            for i in 1...5 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4 + Double(i) * 0.12) {
+                    starsLit = i
+                    HapticFeedbackManager.shared.selectionChanged()
+                }
             }
         }
     }
